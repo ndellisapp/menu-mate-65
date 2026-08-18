@@ -317,7 +317,7 @@ function Field({
   label: string;
   value: string;
   onChange: (value: string) => void;
-  error?: string;
+  error?: string | undefined;
 }) {
   return (
     <div className="space-y-2">

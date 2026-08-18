@@ -148,9 +148,9 @@ export type PlaceOrderPayload = {
     last_name: string;
     phone: string;
     address: string;
-    address_extra?: string;
-    landmark?: string;
-    instructions?: string;
+    address_extra?: string | undefined;
+    landmark?: string | undefined;
+    instructions?: string | undefined;
   };
   items: { day_product_id: string; quantity: number }[];
 };
