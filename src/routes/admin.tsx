@@ -92,17 +92,19 @@ function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-cream">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
-          <span className="font-display text-lg font-bold text-primary">Back-office</span>
+      <header className="bg-sidebar text-sidebar-foreground shadow-warm">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4">
+          <span className="font-display text-xl font-bold text-sidebar-foreground">
+            Back<span className="text-accent">-office</span>
+          </span>
           <nav className="flex flex-wrap items-center gap-1">
             {NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 activeOptions={{ exact: item.exact }}
-                activeProps={{ className: "bg-primary text-primary-foreground" }}
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary"
+                activeProps={{ className: "bg-accent text-accent-foreground hover:bg-accent" }}
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
               >
                 <item.icon className="size-4" />
                 {item.label}
@@ -110,15 +112,25 @@ function AdminLayout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="rounded-full text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            >
               <Link to="/">Voir le site</Link>
             </Button>
-            <Button variant="secondary" size="sm" onClick={signOut}>
+            <Button
+              size="sm"
+              onClick={signOut}
+              className="rounded-full bg-accent text-accent-foreground hover:opacity-90"
+            >
               <LogOut className="size-4" /> Déconnexion
             </Button>
           </div>
         </div>
       </header>
+
       <main className="mx-auto max-w-7xl px-4 py-8">
         <Outlet />
       </main>
