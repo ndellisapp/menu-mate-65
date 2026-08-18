@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Fragment } from "react";
 import { useMemo, useState } from "react";
 import { Download, FileSpreadsheet, Printer, Tags } from "lucide-react";
 import { toast } from "sonner";
@@ -167,9 +168,8 @@ function OrdersPage() {
           </thead>
           <tbody>
             {filtered.map((order) => (
-              <>
+              <Fragment key={order.id}>
                 <tr
-                  key={order.id}
                   className="cursor-pointer border-b border-border/60 hover:bg-secondary/50"
                   onClick={() => setExpanded(expanded === order.id ? null : order.id)}
                 >
@@ -213,7 +213,7 @@ function OrdersPage() {
                   </td>
                 </tr>
                 {expanded === order.id && (
-                  <tr key={`${order.id}-detail`} className="border-b border-border/60 bg-secondary/30">
+                  <tr className="border-b border-border/60 bg-secondary/30">
                     <td colSpan={6} className="p-4">
                       <p className="text-sm">
                         <strong>Livraison :</strong> {order.address}
@@ -241,7 +241,7 @@ function OrdersPage() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
             {filtered.length === 0 && (
               <tr>
