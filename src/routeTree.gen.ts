@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as ConfirmationRouteImport } from './routes/confirmation'
@@ -17,6 +18,11 @@ import { Route as ConfirmationRouteImport } from './routes/confirmation'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -37,12 +43,14 @@ const ConfirmationRoute = ConfirmationRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/commande': typeof CommandeRoute
   '/confirmation': typeof ConfirmationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/commande': typeof CommandeRoute
   '/confirmation': typeof ConfirmationRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/commande': typeof CommandeRoute
   '/confirmation': typeof ConfirmationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/commande' | '/confirmation'
+  fullPaths: '/' | '/admin' | '/auth' | '/commande' | '/confirmation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/commande' | '/confirmation'
-  id: '__root__' | '/' | '/auth' | '/commande' | '/confirmation'
+  to: '/' | '/admin' | '/auth' | '/commande' | '/confirmation'
+  id: '__root__' | '/' | '/admin' | '/auth' | '/commande' | '/confirmation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   CommandeRoute: typeof CommandeRoute
   ConfirmationRoute: typeof ConfirmationRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   CommandeRoute: CommandeRoute,
   ConfirmationRoute: ConfirmationRoute,
