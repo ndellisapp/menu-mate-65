@@ -2,32 +2,37 @@ import { Link } from "@tanstack/react-router";
 import { ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { useCart } from "@/lib/cart";
 
+const NAV_LINK =
+  "rounded-full px-4 py-2 text-sm font-medium text-sidebar-foreground/75 transition-colors hover:text-accent";
+
 export function SiteHeader() {
   const { count } = useCart();
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <UtensilsCrossed className="size-4" />
+    <header className="sticky top-0 z-40 bg-sidebar text-sidebar-foreground shadow-warm">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+        <Link to="/" className="flex items-center gap-2.5">
+          <span className="flex size-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
+            <UtensilsCrossed className="size-5" />
           </span>
-          <span className="font-display text-lg font-bold text-primary">Traiteur</span>
+          <span className="font-display text-2xl font-bold tracking-tight text-sidebar-foreground">
+            Traiteur<span className="text-accent">.</span>
+          </span>
         </Link>
-        <nav className="flex items-center gap-1 text-sm">
-          <Link
-            to="/"
-            className="rounded-md px-3 py-2 font-medium text-foreground/80 transition-colors hover:bg-secondary"
-          >
+        <nav className="flex items-center gap-1">
+          <Link to="/" className={NAV_LINK} activeProps={{ className: "text-accent" }}>
             Menu
+          </Link>
+          <Link to="/auth" className={NAV_LINK}>
+            Espace gérant
           </Link>
           <Link
             to="/commande"
-            className="flex items-center gap-2 rounded-md bg-accent px-3 py-2 font-medium text-accent-foreground transition-opacity hover:opacity-90"
+            className="ml-2 flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90"
           >
             <ShoppingBag className="size-4" />
             Panier
             {count > 0 && (
-              <span className="rounded-full bg-accent-foreground/15 px-2 text-xs font-bold">
+              <span className="rounded-full bg-accent-foreground/20 px-2 text-xs font-bold">
                 {count}
               </span>
             )}
