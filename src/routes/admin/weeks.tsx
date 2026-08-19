@@ -376,9 +376,54 @@ function AddProductDialog({
   pending: boolean;
 }) {
   const available = products.filter((p) => p.active);
+  const [mode, setMode] = useState<"new" | "existing">("new");
   const [productId, setProductId] = useState("");
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(20);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("plat");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  function reset() {
+    setProductId("");
+    setName("");
+    setDescription("");
+    setFile(null);
+    setPreview(null);
+    setPrice(0);
+    setStock(20);
+    setMode("new");
+  }
+
+  async function createAndAdd() {
+    if (!day || !name.trim()) return;
+    setCreating(true);
+    try {
+      let photoUrl: string | null = null;
+      if (file) photoUrl = await uploadPhoto(file);
+      const { data, error } = await db
+        .from("products")
+        .insert({
+          name: name.trim(),
+          description: description.trim() || null,
+          category,
+          base_price: price,
+          photo_url: photoUrl,
+        })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      onSubmit({ day_id: day.id, product_id: data.id, price, stock_initial: stock });
+      reset();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ajout impossible");
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <Dialog
@@ -386,35 +431,111 @@ function AddProductDialog({
       onOpenChange={(open) => {
         if (!open) {
           onClose();
-          setProductId("");
+          reset();
         }
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter un produit au {day ? formatDay(day.date) : ""}</DialogTitle>
+          <DialogTitle>Plat du {day ? formatDay(day.date) : ""}</DialogTitle>
         </DialogHeader>
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "new" ? "default" : "secondary"}
+            onClick={() => setMode("new")}
+          >
+            Nouveau plat
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "existing" ? "default" : "secondary"}
+            onClick={() => setMode("existing")}
+          >
+            Depuis le catalogue
+          </Button>
+        </div>
+
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="product">Produit</Label>
-            <select
-              id="product"
-              value={productId}
-              onChange={(e) => {
-                setProductId(e.target.value);
-                const selected = available.find((p) => p.id === e.target.value);
-                if (selected) setPrice(selected.base_price);
-              }}
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="">Sélectionner…</option>
-              {available.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} — {formatPrice(product.base_price)}
-                </option>
-              ))}
-            </select>
-          </div>
+          {mode === "new" ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="np-name">Nom du plat</Label>
+                <Input
+                  id="np-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Thiéboudienne"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="np-desc">Description (facultatif)</Label>
+                <Input
+                  id="np-desc"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Riz au poisson, légumes"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="np-cat">Catégorie</Label>
+                <select
+                  id="np-cat"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="plat">Plat</option>
+                  <option value="jus">Jus</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="np-photo">Photo du plat</Label>
+                <Input
+                  id="np-photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const picked = e.target.files?.[0] ?? null;
+                    setFile(picked);
+                    setPreview(picked ? URL.createObjectURL(picked) : null);
+                  }}
+                />
+                {preview && (
+                  <img
+                    src={preview}
+                    alt="Aperçu du plat"
+                    className="h-32 w-full rounded-md object-cover"
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="product">Produit existant</Label>
+              <select
+                id="product"
+                value={productId}
+                onChange={(e) => {
+                  setProductId(e.target.value);
+                  const selected = available.find((p) => p.id === e.target.value);
+                  if (selected) setPrice(selected.base_price);
+                }}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="">Sélectionner…</option>
+                {available.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} — {formatPrice(product.base_price)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="dp-price">Prix du jour (FCFA)</Label>
@@ -438,20 +559,27 @@ function AddProductDialog({
             </div>
           </div>
         </div>
+
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>
             Annuler
           </Button>
-          <Button
-            disabled={!productId || !day || pending}
-            onClick={() =>
-              day &&
-              productId &&
-              onSubmit({ day_id: day.id, product_id: productId, price, stock_initial: stock })
-            }
-          >
-            Ajouter
-          </Button>
+          {mode === "new" ? (
+            <Button disabled={!name.trim() || !day || creating || pending} onClick={createAndAdd}>
+              {creating ? "Ajout…" : "Ajouter au menu"}
+            </Button>
+          ) : (
+            <Button
+              disabled={!productId || !day || pending}
+              onClick={() =>
+                day &&
+                productId &&
+                onSubmit({ day_id: day.id, product_id: productId, price, stock_initial: stock })
+              }
+            >
+              Ajouter
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
