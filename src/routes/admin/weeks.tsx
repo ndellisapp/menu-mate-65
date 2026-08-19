@@ -25,6 +25,7 @@ import {
   type Week,
 } from "@/lib/api";
 import { formatDay, formatPrice, todayISO } from "@/lib/format";
+import { uploadPhoto } from "@/lib/upload";
 
 export const Route = createFileRoute("/admin/weeks")({
   component: WeeksPage,
