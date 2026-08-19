@@ -55,7 +55,12 @@ export function formatTime(time: string | null | undefined) {
 }
 
 export function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("fr-CA", {
+    timeZone: "Africa/Dakar",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
 export const ORDER_STATUSES = [
