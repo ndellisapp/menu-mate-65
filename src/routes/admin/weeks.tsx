@@ -58,6 +58,7 @@ function WeeksPage() {
     queryClient.invalidateQueries({ queryKey: ["weeks"] });
     queryClient.invalidateQueries({ queryKey: ["days"] });
     queryClient.invalidateQueries({ queryKey: ["menu"] });
+    queryClient.invalidateQueries({ queryKey: ["products"] });
   }
 
   const createWeek = useMutation({
