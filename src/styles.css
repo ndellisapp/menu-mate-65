@@ -160,6 +160,15 @@
   box-shadow: var(--shadow-card);
 }
 
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @media print {
   .no-print {
     display: none !important;
