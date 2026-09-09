@@ -189,7 +189,7 @@ function ProductCard({ row }: { row: MenuRow }) {
           <p className="line-clamp-2 text-sm text-muted-foreground">{row.description}</p>
         )}
         <p className="text-xs text-muted-foreground">
-          Commandes jusqu'à {formatTime(row.close_time)} ·{" "}
+          {isToday ? "Commandes du jour" : "Précommande"} jusqu'à {formatTime(row.close_time)} ·{" "}
           {available ? `${row.stock_left} restant(s)` : STATE_LABELS[row.state]}
         </p>
 
@@ -235,10 +235,14 @@ function ProductCard({ row }: { row: MenuRow }) {
                   price: row.price,
                   day_date: row.day_date,
                 });
-                toast.success(`${row.name} ajouté au panier`);
+                toast.success(
+                  isToday
+                    ? `${row.name} ajouté au panier`
+                    : `${row.name} ajouté en précommande`,
+                );
               }}
             >
-              Ajouter
+              {isToday ? "Ajouter au panier" : "Précommander"}
             </Button>
           )}
         </div>
