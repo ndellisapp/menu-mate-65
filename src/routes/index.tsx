@@ -43,6 +43,8 @@ export const Route = createFileRoute("/")({
 function MenuPage() {
   const { data, isLoading } = useQuery(publicMenuQuery());
   const [activeDay, setActiveDay] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dayRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const rows = data ?? [];
 
   const days = useMemo(() => [...new Set(rows.map((r) => r.day_date))].sort(), [rows]);
@@ -50,6 +52,15 @@ function MenuPage() {
   const dayRows = rows.filter((r) => r.day_date === currentDay);
   const plats = dayRows.filter((r) => r.category === "plat");
   const jus = dayRows.filter((r) => r.category === "jus");
+
+  useEffect(() => {
+    if (currentDay && scrollRef.current) {
+      const btn = dayRefs.current.get(currentDay);
+      if (btn) {
+        btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+    }
+  }, [currentDay]);
 
   return (
     <div className="min-h-screen bg-background">
