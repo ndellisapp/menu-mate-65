@@ -11,7 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { publicMenuQuery, type MenuRow } from "@/lib/api";
 import { useCart } from "@/lib/cart";
-import { formatDay, formatDayShort, formatPrice, formatTime, STATE_LABELS } from "@/lib/format";
+import {
+  formatDay,
+  formatDayShort,
+  formatPrice,
+  formatTime,
+  STATE_LABELS,
+  todayISO,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -143,6 +150,7 @@ function ProductCard({ row }: { row: MenuRow }) {
   const inCart = items.find((i) => i.day_product_id === row.day_product_id);
   const available = row.state === "disponible";
   const maxQty = row.stock_left;
+  const isToday = row.day_date === todayISO();
 
   return (
     <article
