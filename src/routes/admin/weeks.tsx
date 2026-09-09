@@ -387,6 +387,7 @@ function AddProductDialog({
   const [category, setCategory] = useState("plat");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [photoLink, setPhotoLink] = useState("");
   const [creating, setCreating] = useState(false);
 
   function reset() {
@@ -395,6 +396,7 @@ function AddProductDialog({
     setDescription("");
     setFile(null);
     setPreview(null);
+    setPhotoLink("");
     setPrice(0);
     setStock(20);
     setMode("new");
