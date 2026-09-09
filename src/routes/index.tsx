@@ -115,9 +115,16 @@ function MenuPage() {
               ))}
             </div>
 
-            <h2 className="font-display text-2xl font-bold">
-              {currentDay ? formatDay(currentDay) : ""}
-            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="font-display text-2xl font-bold">
+                {currentDay ? formatDay(currentDay) : ""}
+              </h2>
+              {currentDay && (
+                <Badge variant={currentDay === todayISO() ? "default" : "secondary"}>
+                  {currentDay === todayISO() ? "Menu du jour" : "Précommande"}
+                </Badge>
+              )}
+            </div>
 
             <ProductSection title="Les plats" rows={plats} />
             <ProductSection title="Les jus" rows={jus} />
