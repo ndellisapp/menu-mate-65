@@ -406,7 +406,7 @@ function AddProductDialog({
     if (!day || !name.trim()) return;
     setCreating(true);
     try {
-      let photoUrl: string | null = null;
+      let photoUrl: string | null = photoLink.trim() || null;
       if (file) photoUrl = await uploadPhoto(file);
       const { data, error } = await db
         .from("products")
@@ -508,9 +508,20 @@ function AddProductDialog({
                     setPreview(picked ? URL.createObjectURL(picked) : null);
                   }}
                 />
-                {preview && (
+                <p className="text-xs text-muted-foreground">
+                  ou collez un lien d'image ci-dessous
+                </p>
+                <Input
+                  id="np-photo-url"
+                  type="url"
+                  value={photoLink}
+                  onChange={(e) => setPhotoLink(e.target.value)}
+                  placeholder="https://…/photo.jpg"
+                  disabled={!!file}
+                />
+                {(preview ?? (photoLink.trim() || null)) && (
                   <img
-                    src={preview}
+                    src={preview ?? photoLink.trim()}
                     alt="Aperçu du plat"
                     className="h-32 w-full rounded-md object-cover"
                   />
