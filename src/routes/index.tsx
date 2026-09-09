@@ -109,21 +109,37 @@ function MenuPage() {
           </div>
         ) : (
           <>
-            <div className="no-print mb-8 flex flex-wrap gap-2">
-              {days.map((day) => (
-                <button
-                  key={day}
-                  onClick={() => setActiveDay(day)}
-                  className={cn(
-                    "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
-                    day === currentDay
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-card text-foreground hover:bg-secondary",
-                  )}
-                >
-                  {formatDayShort(day)}
-                </button>
-              ))}
+            <div
+              ref={scrollRef}
+              className="no-print mb-8 flex gap-3 overflow-x-auto pb-3 scrollbar-hide scroll-smooth"
+            >
+              {days.map((day) => {
+                const isCurrent = day === currentDay;
+                const isToday = day === todayISO();
+                return (
+                  <button
+                    key={day}
+                    ref={(el) => {
+                      if (el) dayRefs.current.set(day, el);
+                    }}
+                    onClick={() => setActiveDay(day)}
+                    className={cn(
+                      "shrink-0 select-none rounded-full px-5 py-2.5 text-sm font-bold transition-all",
+                      "border shadow-sm backdrop-blur-sm",
+                      isCurrent
+                        ? "border-primary bg-primary text-primary-foreground shadow-warm scale-105"
+                        : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-secondary",
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      {formatDayShort(day)}
+                      {isToday && (
+                        <span className="inline-flex h-2 w-2 rounded-full bg-accent" />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
