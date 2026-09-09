@@ -11,7 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { publicMenuQuery, type MenuRow } from "@/lib/api";
 import { useCart } from "@/lib/cart";
-import { formatDay, formatDayShort, formatPrice, formatTime, STATE_LABELS } from "@/lib/format";
+import {
+  formatDay,
+  formatDayShort,
+  formatPrice,
+  formatTime,
+  STATE_LABELS,
+  todayISO,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -108,9 +115,16 @@ function MenuPage() {
               ))}
             </div>
 
-            <h2 className="font-display text-2xl font-bold">
-              {currentDay ? formatDay(currentDay) : ""}
-            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="font-display text-2xl font-bold">
+                {currentDay ? formatDay(currentDay) : ""}
+              </h2>
+              {currentDay && (
+                <Badge variant={currentDay === todayISO() ? "default" : "secondary"}>
+                  {currentDay === todayISO() ? "Menu du jour" : "Précommande"}
+                </Badge>
+              )}
+            </div>
 
             <ProductSection title="Les plats" rows={plats} />
             <ProductSection title="Les jus" rows={jus} />
@@ -143,6 +157,7 @@ function ProductCard({ row }: { row: MenuRow }) {
   const inCart = items.find((i) => i.day_product_id === row.day_product_id);
   const available = row.state === "disponible";
   const maxQty = row.stock_left;
+  const isToday = row.day_date === todayISO();
 
   return (
     <article
@@ -181,7 +196,7 @@ function ProductCard({ row }: { row: MenuRow }) {
           <p className="line-clamp-2 text-sm text-muted-foreground">{row.description}</p>
         )}
         <p className="text-xs text-muted-foreground">
-          Commandes jusqu'à {formatTime(row.close_time)} ·{" "}
+          {isToday ? "Commandes du jour" : "Précommande"} jusqu'à {formatTime(row.close_time)} ·{" "}
           {available ? `${row.stock_left} restant(s)` : STATE_LABELS[row.state]}
         </p>
 
@@ -227,10 +242,14 @@ function ProductCard({ row }: { row: MenuRow }) {
                   price: row.price,
                   day_date: row.day_date,
                 });
-                toast.success(`${row.name} ajouté au panier`);
+                toast.success(
+                  isToday
+                    ? `${row.name} ajouté au panier`
+                    : `${row.name} ajouté en précommande`,
+                );
               }}
             >
-              Ajouter
+              {isToday ? "Ajouter au panier" : "Précommander"}
             </Button>
           )}
         </div>
