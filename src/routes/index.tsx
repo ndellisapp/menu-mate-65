@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Minus, Plus, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
-import heroImage from "@/assets/hero-traiteur.jpg";
+import heroImage from "@/assets/plats-traiteur-header.png.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,8 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Plats et jus disponibles chaque jour. Précommandez en quelques clics.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: MenuPage,
@@ -62,31 +64,39 @@ function MenuPage() {
     }
   }, [currentDay]);
 
+  const scrollDays = (direction: "left" | "right") => {
+    scrollRef.current?.scrollBy({
+      left: direction === "left" ? -280 : 280,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
       <section className="relative overflow-hidden border-b border-border/70">
         <img
-          src={heroImage}
+          src={heroImage.url}
           alt="Plats sénégalais et jus frais préparés par le traiteur"
           width={1600}
           height={912}
-          className="h-[280px] w-full object-cover sm:h-[380px]"
+          className="h-[310px] w-full object-cover sm:h-[420px]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-sidebar/95 via-sidebar/65 to-sidebar/10" />
         <div className="absolute inset-0 flex items-center">
           <div className="mx-auto w-full max-w-6xl px-4">
-            <div className="max-w-xl text-primary-foreground">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] opacity-80">
-                Précommande en ligne
+            <div className="max-w-2xl text-sidebar-foreground">
+              <p className="text-sm font-bold uppercase tracking-widest text-accent">
+                Votre table, notre passion
               </p>
-              <h1 className="mt-3 text-3xl font-bold sm:text-5xl">
-                Le goût de la maison, préparé pour vous chaque jour
+              <h1 className="mt-3 font-display text-4xl font-bold leading-tight sm:text-6xl">
+                Le goût de la maison,
+                <span className="block italic text-accent">préparé chaque jour.</span>
               </h1>
-              <p className="mt-4 text-sm opacity-90 sm:text-base">
-                Menu publié chaque dimanche pour la semaine suivante. Réservez vos plats et vos jus
-                avant l'heure limite.
+              <p className="mt-5 max-w-lg text-sm leading-6 text-sidebar-foreground/85 sm:text-base">
+                Découvrez le menu de la semaine et réservez vos plats et jus frais avant l'heure
+                limite.
               </p>
             </div>
           </div>
@@ -109,37 +119,61 @@ function MenuPage() {
           </div>
         ) : (
           <>
-            <div
-              ref={scrollRef}
-              className="no-print mb-8 flex gap-3 overflow-x-auto pb-3 scrollbar-hide scroll-smooth"
-            >
-              {days.map((day) => {
-                const isCurrent = day === currentDay;
-                const isToday = day === todayISO();
-                return (
-                  <button
-                    key={day}
-                    ref={(el) => {
-                      if (el) dayRefs.current.set(day, el);
-                    }}
-                    onClick={() => setActiveDay(day)}
-                    className={cn(
-                      "shrink-0 select-none rounded-full px-5 py-2.5 text-sm font-bold transition-all",
-                      "border shadow-sm backdrop-blur-sm",
-                      isCurrent
-                        ? "border-primary bg-primary text-primary-foreground shadow-warm scale-105"
-                        : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-secondary",
-                    )}
+            <div className="no-print mb-9">
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <p className="font-display text-lg font-bold">Menus de la semaine</p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => scrollDays("left")}
+                    aria-label="Voir les jours précédents"
+                    title="Jours précédents"
                   >
-                    <span className="flex items-center gap-2">
-                      {formatDayShort(day)}
-                      {isToday && (
-                        <span className="inline-flex h-2 w-2 rounded-full bg-accent" />
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => scrollDays("right")}
+                    aria-label="Voir les jours suivants"
+                    title="Jours suivants"
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              </div>
+              <div
+                ref={scrollRef}
+                className="flex snap-x snap-mandatory gap-3 overflow-x-auto py-2 scrollbar-hide scroll-smooth"
+              >
+                {days.map((day) => {
+                  const isCurrent = day === currentDay;
+                  const isToday = day === todayISO();
+                  return (
+                    <Button
+                      key={day}
+                      ref={(el) => {
+                        if (el) dayRefs.current.set(day, el);
+                      }}
+                      type="button"
+                      variant={isCurrent ? "default" : "outline"}
+                      onClick={() => setActiveDay(day)}
+                      className={cn(
+                        "h-auto min-w-36 shrink-0 snap-start rounded-full px-6 py-3 text-sm font-bold",
+                        isCurrent && "shadow-warm",
                       )}
-                    </span>
-                  </button>
-                );
-              })}
+                    >
+                      <span className="flex items-center gap-2">
+                        {formatDayShort(day)}
+                        {isToday && <span className="inline-flex size-2 rounded-full bg-accent" />}
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
