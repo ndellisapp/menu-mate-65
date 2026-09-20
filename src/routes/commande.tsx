@@ -92,7 +92,10 @@ function CheckoutPage() {
       clear();
       navigate({ to: "/confirmation" });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => {
+      if (isCancelledError(error)) return;
+      toast.error(error.message);
+    },
   });
 
   function submit() {
