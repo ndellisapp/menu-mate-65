@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { placeOrder, publicMenuQuery } from "@/lib/api";
+import { isCancelledError, placeOrder, publicMenuQuery } from "@/lib/api";
 import { useCart } from "@/lib/cart";
 import { formatDay, formatPrice } from "@/lib/format";
 
@@ -92,7 +92,10 @@ function CheckoutPage() {
       clear();
       navigate({ to: "/confirmation" });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => {
+      if (isCancelledError(error)) return;
+      toast.error(error.message);
+    },
   });
 
   function submit() {

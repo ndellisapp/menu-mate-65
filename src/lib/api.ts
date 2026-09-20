@@ -155,6 +155,13 @@ export type PlaceOrderPayload = {
   items: { day_product_id: string; quantity: number }[];
 };
 
+/** True when the failure is just an aborted/cancelled request (navigation, retry),
+ * not a real server error the user should see. */
+export function isCancelledError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /cancelled|canceled|aborted|abort/i.test(message);
+}
+
 export async function placeOrder(payload: PlaceOrderPayload) {
   const { data, error } = await db.rpc("place_order", {
     p_customer: payload.customer,
