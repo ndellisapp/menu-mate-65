@@ -128,6 +128,7 @@ function ProductsPage() {
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-muted-foreground">
+              <th className="p-3">Photo</th>
               <th className="p-3">Produit</th>
               <th className="p-3">Catégorie</th>
               <th className="p-3 text-right">Prix de base</th>
@@ -199,13 +200,34 @@ function ProductsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="photo">URL de la photo</Label>
+                <Label htmlFor="photo-file">Photo du produit</Label>
+                <Input
+                  id="photo-file"
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const picked = e.target.files?.[0];
+                    if (picked) void pickPhoto(picked);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {uploading ? "Import en cours…" : "ou collez un lien d'image ci-dessous"}
+                </p>
                 <Input
                   id="photo"
                   maxLength={500}
+                  placeholder="https://…/photo.jpg"
                   value={draft.photo_url}
                   onChange={(e) => setDraft({ ...draft, photo_url: e.target.value })}
                 />
+                {draft.photo_url.trim() && (
+                  <img
+                    src={draft.photo_url.trim()}
+                    alt="Aperçu du produit"
+                    className="h-32 w-full rounded-md object-cover"
+                  />
+                )}
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
