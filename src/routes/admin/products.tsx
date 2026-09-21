@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { db, productsQuery, type Product } from "@/lib/api";
 import { formatPrice } from "@/lib/format";
+import { uploadPhoto } from "@/lib/upload";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
@@ -46,6 +47,21 @@ function ProductsPage() {
   const queryClient = useQueryClient();
   const { data: products = [] } = useQuery(productsQuery());
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function pickPhoto(file: File) {
+    if (!draft) return;
+    setUploading(true);
+    try {
+      const url = await uploadPhoto(file);
+      setDraft((current) => (current ? { ...current, photo_url: url } : current));
+      toast.success("Photo importée");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Import impossible");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const save = useMutation({
     mutationFn: async (value: Draft) => {
