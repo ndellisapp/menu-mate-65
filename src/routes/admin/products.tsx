@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { db, productsQuery, type Product } from "@/lib/api";
 import { formatPrice } from "@/lib/format";
+import { uploadPhoto } from "@/lib/upload";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsPage,
@@ -46,6 +47,21 @@ function ProductsPage() {
   const queryClient = useQueryClient();
   const { data: products = [] } = useQuery(productsQuery());
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function pickPhoto(file: File) {
+    if (!draft) return;
+    setUploading(true);
+    try {
+      const url = await uploadPhoto(file);
+      setDraft((current) => (current ? { ...current, photo_url: url } : current));
+      toast.success("Photo importée");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Import impossible");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const save = useMutation({
     mutationFn: async (value: Draft) => {
@@ -112,6 +128,7 @@ function ProductsPage() {
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-muted-foreground">
+              <th className="p-3">Photo</th>
               <th className="p-3">Produit</th>
               <th className="p-3">Catégorie</th>
               <th className="p-3 text-right">Prix de base</th>
@@ -122,6 +139,19 @@ function ProductsPage() {
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="border-b border-border/60">
+                <td className="p-3">
+                  {product.photo_url ? (
+                    <img
+                      src={product.photo_url}
+                      alt={product.name}
+                      className="size-12 rounded-md object-cover"
+                    />
+                  ) : (
+                    <span className="flex size-12 items-center justify-center rounded-md bg-secondary text-sm font-bold">
+                      {product.name.slice(0, 1)}
+                    </span>
+                  )}
+                </td>
                 <td className="p-3">
                   <p className="font-medium">{product.name}</p>
                   {product.description && (
@@ -148,7 +178,7 @@ function ProductsPage() {
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                <td colSpan={6} className="p-6 text-center text-muted-foreground">
                   Aucun produit pour le moment.
                 </td>
               </tr>
@@ -183,13 +213,34 @@ function ProductsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="photo">URL de la photo</Label>
+                <Label htmlFor="photo-file">Photo du produit</Label>
+                <Input
+                  id="photo-file"
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const picked = e.target.files?.[0];
+                    if (picked) void pickPhoto(picked);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {uploading ? "Import en cours…" : "ou collez un lien d'image ci-dessous"}
+                </p>
                 <Input
                   id="photo"
                   maxLength={500}
+                  placeholder="https://…/photo.jpg"
                   value={draft.photo_url}
                   onChange={(e) => setDraft({ ...draft, photo_url: e.target.value })}
                 />
+                {draft.photo_url.trim() && (
+                  <img
+                    src={draft.photo_url.trim()}
+                    alt="Aperçu du produit"
+                    className="h-32 w-full rounded-md object-cover"
+                  />
+                )}
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
