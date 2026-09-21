@@ -140,6 +140,19 @@ function ProductsPage() {
             {products.map((product) => (
               <tr key={product.id} className="border-b border-border/60">
                 <td className="p-3">
+                  {product.photo_url ? (
+                    <img
+                      src={product.photo_url}
+                      alt={product.name}
+                      className="size-12 rounded-md object-cover"
+                    />
+                  ) : (
+                    <span className="flex size-12 items-center justify-center rounded-md bg-secondary text-sm font-bold">
+                      {product.name.slice(0, 1)}
+                    </span>
+                  )}
+                </td>
+                <td className="p-3">
                   <p className="font-medium">{product.name}</p>
                   {product.description && (
                     <p className="text-xs text-muted-foreground">{product.description}</p>
