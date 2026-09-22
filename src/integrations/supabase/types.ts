@@ -190,11 +190,13 @@ export type Database = {
           address: string
           address_extra: string | null
           created_at: string
+          deposit_required: number
           first_name: string
           id: string
           instructions: string | null
           landmark: string | null
           last_name: string
+          order_type: string
           paid_amount: number
           payment_method: string | null
           payment_reference: string | null
@@ -208,11 +210,13 @@ export type Database = {
           address: string
           address_extra?: string | null
           created_at?: string
+          deposit_required?: number
           first_name: string
           id?: string
           instructions?: string | null
           landmark?: string | null
           last_name: string
+          order_type?: string
           paid_amount?: number
           payment_method?: string | null
           payment_reference?: string | null
@@ -226,11 +230,13 @@ export type Database = {
           address?: string
           address_extra?: string | null
           created_at?: string
+          deposit_required?: number
           first_name?: string
           id?: string
           instructions?: string | null
           landmark?: string | null
           last_name?: string
+          order_type?: string
           paid_amount?: number
           payment_method?: string | null
           payment_reference?: string | null

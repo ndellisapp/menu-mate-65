@@ -11,9 +11,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { isCancelledError, placeOrder, publicMenuQuery } from "@/lib/api";
+import {
+  DEPOSIT_AMOUNT,
+  PAYMENT_NUMBER,
+  isCancelledError,
+  placeOrder,
+  publicMenuQuery,
+} from "@/lib/api";
 import { useCart } from "@/lib/cart";
-import { formatDay, formatPrice } from "@/lib/format";
+import { formatDay, formatPrice, todayISO } from "@/lib/format";
 
 export const Route = createFileRoute("/commande")({
   head: () => ({
@@ -54,6 +60,8 @@ function CheckoutPage() {
   const { items, setQuantity, remove, total, clear } = useCart();
   const { data: menu } = useQuery(publicMenuQuery());
   const [accepted, setAccepted] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"wave" | "orange_money" | "">("");
+  const [paymentReference, setPaymentReference] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     first_name: "",
@@ -64,6 +72,12 @@ function CheckoutPage() {
     landmark: "",
     instructions: "",
   });
+
+  const today = todayISO();
+  const isPreorder = useMemo(
+    () => items.some((item) => item.day_date > today),
+    [items, today],
+  );
 
   const grouped = useMemo(() => {
     const map = new Map<string, typeof items>();
@@ -118,8 +132,21 @@ function CheckoutPage() {
       toast.error("Certains produits ne sont plus disponibles, mettez le panier à jour.");
       return;
     }
+    if (isPreorder && !paymentMethod) {
+      toast.error("Choisissez Wave ou Orange Money pour payer l'acompte de 1 500 FCFA.");
+      return;
+    }
+    if (isPreorder && paymentReference.trim().length < 4) {
+      toast.error("Saisissez l'identifiant de la transaction de votre acompte.");
+      return;
+    }
     mutation.mutate({
-      customer: parsed.data,
+      customer: {
+        ...parsed.data,
+        ...(isPreorder
+          ? { payment_method: paymentMethod, payment_reference: paymentReference.trim() }
+          : {}),
+      },
       items: items.map((i) => ({ day_product_id: i.day_product_id, quantity: i.quantity })),
     });
   }
@@ -275,6 +302,44 @@ function CheckoutPage() {
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>
                 </div>
+
+                {isPreorder && (
+                  <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+                    <p className="font-semibold text-primary">
+                      Acompte de précommande : {formatPrice(DEPOSIT_AMOUNT)}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Envoyez l'acompte au <strong>{PAYMENT_NUMBER}</strong> puis indiquez
+                      l'identifiant de la transaction. Le reste est réglé à la livraison.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={paymentMethod === "wave" ? "default" : "outline"}
+                        onClick={() => setPaymentMethod("wave")}
+                      >
+                        Wave
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={paymentMethod === "orange_money" ? "default" : "outline"}
+                        onClick={() => setPaymentMethod("orange_money")}
+                      >
+                        Orange Money
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="payment_reference">ID de la transaction *</Label>
+                      <Input
+                        id="payment_reference"
+                        placeholder="Ex : TXN123456789"
+                        value={paymentReference}
+                        maxLength={60}
+                        onChange={(e) => setPaymentReference(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="rounded-lg bg-secondary p-3 text-sm text-secondary-foreground">
                   <strong>Important :</strong> toute précommande validée est non remboursable.

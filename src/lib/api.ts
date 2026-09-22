@@ -67,6 +67,10 @@ export type Order = {
   total: number;
   status: string;
   payment_status: string;
+  order_type: string;
+  deposit_required: number;
+  payment_method: string | null;
+  payment_reference: string | null;
   created_at: string;
 };
 
@@ -151,6 +155,8 @@ export type PlaceOrderPayload = {
     address_extra?: string | undefined;
     landmark?: string | undefined;
     instructions?: string | undefined;
+    payment_method?: string | undefined;
+    payment_reference?: string | undefined;
   };
   items: { day_product_id: string; quantity: number }[];
 };
@@ -168,7 +174,16 @@ export async function placeOrder(payload: PlaceOrderPayload) {
     p_items: payload.items,
   });
   if (error) throw new Error(error.message);
-  return data as { reference: string; total: number; order_id: string };
+  return data as {
+    reference: string;
+    total: number;
+    order_id: string;
+    order_type: string;
+    deposit_required: number;
+  };
 }
+
+export const PAYMENT_NUMBER = "78 186 72 72";
+export const DEPOSIT_AMOUNT = 1500;
 
 export { db };

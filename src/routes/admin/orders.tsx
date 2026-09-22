@@ -173,7 +173,14 @@ function OrdersPage() {
                   className="cursor-pointer border-b border-border/60 hover:bg-secondary/50"
                   onClick={() => setExpanded(expanded === order.id ? null : order.id)}
                 >
-                  <td className="p-3 font-semibold">{order.reference}</td>
+                  <td className="p-3 font-semibold">
+                    {order.reference}
+                    {order.order_type === "precommande" && (
+                      <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        Précommande
+                      </span>
+                    )}
+                  </td>
                   <td className="p-3">
                     {order.last_name} {order.first_name}
                   </td>
@@ -208,6 +215,8 @@ function OrdersPage() {
                       className="h-9 rounded-md border border-input bg-background px-2 text-sm"
                     >
                       <option value="non_paye">Non payé</option>
+                      <option value="acompte_a_verifier">Acompte à vérifier</option>
+                      <option value="acompte_paye">Acompte payé</option>
                       <option value="paye">Payé</option>
                     </select>
                   </td>
@@ -220,6 +229,13 @@ function OrdersPage() {
                         {order.address_extra ? ` — ${order.address_extra}` : ""}
                         {order.landmark ? ` (repère : ${order.landmark})` : ""}
                       </p>
+                      {order.order_type === "precommande" && (
+                        <p className="mt-1 text-sm">
+                          <strong>Acompte :</strong> {formatPrice(order.deposit_required)} —{" "}
+                          {order.payment_method === "wave" ? "Wave" : "Orange Money"} — ID{" "}
+                          {order.payment_reference ?? "—"}
+                        </p>
+                      )}
                       {order.instructions && (
                         <p className="mt-1 text-sm">
                           <strong>Instructions :</strong> {order.instructions}
