@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
+import chefImage from "@/assets/chef-ndellis.jpg.asset.json";
 import heroImage from "@/assets/plats-traiteur-header.png.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
@@ -192,6 +193,8 @@ function MenuPage() {
           </>
         )}
       </main>
+
+      <ChefSection />
 
       <CartBar />
       <SiteFooter />
