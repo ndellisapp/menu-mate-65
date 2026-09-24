@@ -339,22 +339,6 @@ function CulinaryJourneySection() {
   return (
     <section className="border-y border-border/70 bg-secondary/40">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-[minmax(0,6fr)_minmax(0,6fr)]">
-        <div className="relative mx-auto w-full max-w-md">
-          <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
-          <video
-            poster={cuisinePoster.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            aria-label="La cheffe Ndellis Signé en pleine préparation en cuisine"
-            className="relative aspect-[9/16] w-full rounded-2xl object-cover shadow-warm"
-          >
-            <source src={cuisineVideoWebm.url} type="video/webm" />
-            <source src={cuisineVideo.url} type="video/mp4" />
-          </video>
-        </div>
         <div className="order-first md:order-none">
           <p className="text-sm font-bold uppercase tracking-widest text-accent">
             Nos clients
@@ -383,6 +367,22 @@ function CulinaryJourneySection() {
               </span>
             ))}
           </div>
+        </div>
+        <div className="relative mx-auto w-full max-w-md">
+          <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
+          <video
+            poster={cuisinePoster.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label="La cheffe Ndellis Signé en pleine préparation en cuisine"
+            className="relative aspect-[9/16] w-full rounded-2xl object-cover shadow-warm"
+          >
+            <source src={cuisineVideoWebm.url} type="video/webm" />
+            <source src={cuisineVideo.url} type="video/mp4" />
+          </video>
         </div>
       </div>
     </section>
