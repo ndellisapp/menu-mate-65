@@ -5,7 +5,9 @@ import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-reac
 import { toast } from "sonner";
 
 import chefImage from "@/assets/chef-ndellis.jpg.asset.json";
+import cuisinePoster from "@/assets/cheffe-cuisine-poster.jpg.asset.json";
 import cuisineVideo from "@/assets/cheffe-cuisine.mp4.asset.json";
+import cuisineVideoWebm from "@/assets/cheffe-cuisine.webm.asset.json";
 import heroImage from "@/assets/plats-traiteur-header.png.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
@@ -340,7 +342,7 @@ function CulinaryJourneySection() {
         <div className="relative mx-auto w-full max-w-md">
           <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
           <video
-            src={cuisineVideo.url}
+            poster={cuisinePoster.url}
             autoPlay
             muted
             loop
@@ -348,7 +350,10 @@ function CulinaryJourneySection() {
             preload="metadata"
             aria-label="La cheffe Ndellis Signé en pleine préparation en cuisine"
             className="relative aspect-[9/16] w-full rounded-2xl object-cover shadow-warm"
-          />
+          >
+            <source src={cuisineVideoWebm.url} type="video/webm" />
+            <source src={cuisineVideo.url} type="video/mp4" />
+          </video>
         </div>
         <div className="order-first md:order-none">
           <p className="text-sm font-bold uppercase tracking-widest text-accent">
