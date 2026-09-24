@@ -393,7 +393,7 @@ function ChefSection() {
   return (
     <section className="bg-sidebar text-sidebar-foreground">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <div className="relative mx-auto w-full max-w-sm md:order-none order-first">
+        <div className="relative mx-auto order-first w-full max-w-sm md:order-2">
           <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
           <img
             src={chefImage.url}
