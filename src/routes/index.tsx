@@ -371,12 +371,17 @@ const SENEGAL_PLATS = [
   { src: platSenegalais8.url, alt: "Barquettes de riz au poisson séché" },
 ];
 
-const ASIE_PLACEHOLDERS: { icon: LucideIcon; label: string }[] = [
-  { icon: Soup, label: "Nouilles sautées" },
-  { icon: Shrimp, label: "Crevettes à l'ail" },
-  { icon: Salad, label: "Rouleaux de printemps" },
-  { icon: Utensils, label: "Riz cantonais" },
-  { icon: Croissant, label: "Nems croustillants" },
+const ROW2_PLATS: { src: string; alt: string }[] = [
+  { src: platRow2_1.url, alt: "Salades de poulet grillé, avocat et légumes frais" },
+  { src: platRow2_2.url, alt: "Salades de poulet croustillant et crudités" },
+  { src: platRow2_3.url, alt: "Salades de crevettes, mangue et avocat" },
+  { src: platRow2_4.url, alt: "Salades de poulet grillé, pain frais et sauce maison" },
+  { src: platRow2_5.url, alt: "Poulet grillé, guacamole, riz et haricots rouges" },
+  { src: platRow2_6.url, alt: "Salades de filets croustillants et légumes" },
+  { src: platRow2_7.url, alt: "Salades de crudités, maïs, haricots verts et avocat" },
+  { src: platRow2_8.url, alt: "Salades de crevettes, mangue et citron vert" },
+  { src: platRow2_9.url, alt: "Salades de thon, œuf, olives et avocat" },
+  { src: platRow2_10.url, alt: "Vermicelles de crevettes sautées, saveurs asiatiques" },
 ];
 
 const EUROPE_PLACEHOLDERS: { icon: LucideIcon; label: string }[] = [
