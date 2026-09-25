@@ -1,7 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CakeSlice,
+  Croissant,
+  Minus,
+  Plus,
+  Salad,
+  Shrimp,
+  ShoppingBag,
+  Soup,
+  Utensils,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import chefImage from "@/assets/chef-ndellis.jpg.asset.json";
@@ -9,6 +22,14 @@ import cuisinePoster from "@/assets/cheffe-cuisine-poster.jpg.asset.json";
 import cuisineVideo from "@/assets/cheffe-cuisine.mp4.asset.json";
 import cuisineVideoWebm from "@/assets/cheffe-cuisine.webm.asset.json";
 import heroImage from "@/assets/plats-traiteur-header.png.asset.json";
+import platSenegalais1 from "@/assets/plat-senegalais-1.jpg.asset.json";
+import platSenegalais2 from "@/assets/plat-senegalais-2.jpg.asset.json";
+import platSenegalais3 from "@/assets/plat-senegalais-3.jpg.asset.json";
+import platSenegalais4 from "@/assets/plat-senegalais-4.jpg.asset.json";
+import platSenegalais5 from "@/assets/plat-senegalais-5.jpg.asset.json";
+import platSenegalais6 from "@/assets/plat-senegalais-6.jpg.asset.json";
+import platSenegalais7 from "@/assets/plat-senegalais-7.jpg.asset.json";
+import platSenegalais8 from "@/assets/plat-senegalais-8.jpg.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -196,6 +217,8 @@ function MenuPage() {
           </>
         )}
       </main>
+
+      <GalleryMarquee />
 
       <CulinaryJourneySection />
 

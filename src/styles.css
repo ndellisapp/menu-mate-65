@@ -169,6 +169,40 @@
   }
 }
 
+/* Défilement infini (marquee) de la galerie de plats */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-row {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+.marquee-track {
+  animation: marquee-scroll var(--marquee-duration, 50s) linear infinite;
+  will-change: transform;
+}
+
+.marquee-row-reverse .marquee-track {
+  animation-direction: reverse;
+}
+
+.marquee-row:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;
