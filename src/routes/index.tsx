@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 
 import chefImage from "@/assets/chef-ndellis.jpg.asset.json";
+import traiteurEvents from "@/assets/traiteur-evenements.jpg.asset.json";
 import cuisinePoster from "@/assets/cheffe-cuisine-poster.jpg.asset.json";
 import cuisineVideo from "@/assets/cheffe-cuisine.mp4.asset.json";
 import cuisineVideoWebm from "@/assets/cheffe-cuisine.webm.asset.json";
