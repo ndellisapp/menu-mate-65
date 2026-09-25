@@ -6,17 +6,23 @@ import {
   ChevronRight,
   CakeSlice,
   Croissant,
+  Heart,
+  Cake,
+  Briefcase,
+  PartyPopper,
   Minus,
   Plus,
   Salad,
   ShoppingBag,
   Soup,
   Utensils,
+  MessageCircle,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import chefImage from "@/assets/chef-ndellis.jpg.asset.json";
+import traiteurEvents from "@/assets/traiteur-evenements.jpg.asset.json";
 import cuisinePoster from "@/assets/cheffe-cuisine-poster.jpg.asset.json";
 import cuisineVideo from "@/assets/cheffe-cuisine.mp4.asset.json";
 import cuisineVideoWebm from "@/assets/cheffe-cuisine.webm.asset.json";
@@ -232,6 +238,10 @@ function MenuPage() {
       <CulinaryJourneySection />
 
       <ChefSection />
+
+      <CateringEventsSection />
+
+
 
 
       <CartBar />
@@ -584,6 +594,69 @@ function ChefSection() {
               ),
             )}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const EVENT_TYPES: { icon: LucideIcon; label: string }[] = [
+  { icon: Heart, label: "Mariages" },
+  { icon: Cake, label: "Baptêmes" },
+  { icon: PartyPopper, label: "Anniversaires" },
+  { icon: Briefcase, label: "Entreprises & travail" },
+];
+
+function CateringEventsSection() {
+  return (
+    <section className="relative overflow-hidden">
+      <img
+        src={traiteurEvents.url}
+        alt="Buffets et bouchées raffinées préparés par Ndelli's Traiteur"
+        loading="lazy"
+        className="absolute inset-0 size-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-sidebar/95 via-sidebar/80 to-sidebar/40" />
+      <div className="relative mx-auto max-w-6xl px-4 py-20 text-sidebar-foreground sm:py-24">
+        <p className="text-sm font-bold uppercase tracking-widest text-accent">
+          Service traiteur sur devis
+        </p>
+        <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold leading-tight sm:text-4xl">
+          Vos grandes occasions,
+          <span className="block italic text-accent">notre savoir-faire.</span>
+        </h2>
+        <p className="mt-5 max-w-xl text-sm leading-7 text-sidebar-foreground/90 sm:text-base">
+          Mariages, baptêmes, anniversaires, événements d'entreprise : nous composons des buffets
+          et des tables sur mesure, adaptés à votre nombre d'invités et à vos envies. Chaque
+          prestation est étudiée sur devis, avec les mêmes plats généreux et élégants que nos
+          menus du quotidien.
+        </p>
+        <div className="mt-7 flex flex-wrap gap-2">
+          {EVENT_TYPES.map((item) => (
+            <span
+              key={item.label}
+              className="flex items-center gap-2 rounded-full border border-accent/40 bg-accent/15 px-4 py-1.5 text-xs font-semibold text-accent backdrop-blur-sm"
+            >
+              <item.icon className="size-3.5" aria-hidden="true" />
+              {item.label}
+            </span>
+          ))}
+        </div>
+        <div className="mt-9 flex flex-wrap items-center gap-4">
+          <Button asChild size="lg" className="rounded-full">
+            <a
+              href="https://wa.me/221781867272"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Demander un devis sur WhatsApp"
+            >
+              <MessageCircle className="mr-2 size-5" />
+              Demander un devis sur WhatsApp
+            </a>
+          </Button>
+          <p className="text-sm font-semibold text-sidebar-foreground/85">
+            WhatsApp : <span className="text-accent">78 186 72 72</span>
+          </p>
         </div>
       </div>
     </section>
