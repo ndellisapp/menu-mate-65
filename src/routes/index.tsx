@@ -2,16 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
   CakeSlice,
   Croissant,
+  Heart,
+  Cake,
+  Briefcase,
+  PartyPopper,
   Minus,
   Plus,
   Salad,
   ShoppingBag,
   Soup,
   Utensils,
+  MessageCircle,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
