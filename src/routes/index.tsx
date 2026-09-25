@@ -441,8 +441,14 @@ function GalleryMarquee() {
           ))}
         </MarqueeRow>
         <MarqueeRow duration="55s" reverse>
-          {ASIE_PLACEHOLDERS.map((p) => (
-            <PlaceholderCard key={p.label} icon={p.icon} label={p.label} />
+          {ROW2_PLATS.map((p) => (
+            <img
+              key={p.src}
+              src={p.src}
+              alt={p.alt}
+              loading="lazy"
+              className="h-52 w-44 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-60 sm:w-52"
+            />
           ))}
         </MarqueeRow>
         <MarqueeRow duration="65s">
