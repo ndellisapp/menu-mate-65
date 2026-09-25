@@ -9,7 +9,6 @@ import {
   Minus,
   Plus,
   Salad,
-  Shrimp,
   ShoppingBag,
   Soup,
   Utensils,
@@ -30,6 +29,16 @@ import platSenegalais5 from "@/assets/plat-senegalais-5.jpg.asset.json";
 import platSenegalais6 from "@/assets/plat-senegalais-6.jpg.asset.json";
 import platSenegalais7 from "@/assets/plat-senegalais-7.jpg.asset.json";
 import platSenegalais8 from "@/assets/plat-senegalais-8.jpg.asset.json";
+import platRow2_1 from "@/assets/plat-row2-1.jpg.asset.json";
+import platRow2_2 from "@/assets/plat-row2-2.jpg.asset.json";
+import platRow2_3 from "@/assets/plat-row2-3.jpg.asset.json";
+import platRow2_4 from "@/assets/plat-row2-4.jpg.asset.json";
+import platRow2_5 from "@/assets/plat-row2-5.jpg.asset.json";
+import platRow2_6 from "@/assets/plat-row2-6.jpg.asset.json";
+import platRow2_7 from "@/assets/plat-row2-7.jpg.asset.json";
+import platRow2_8 from "@/assets/plat-row2-8.jpg.asset.json";
+import platRow2_9 from "@/assets/plat-row2-9.jpg.asset.json";
+import platRow2_10 from "@/assets/plat-row2-10.jpg.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
