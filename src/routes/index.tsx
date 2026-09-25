@@ -239,6 +239,10 @@ function MenuPage() {
 
       <ChefSection />
 
+      <CateringEventsSection />
+
+
+
 
       <CartBar />
       <SiteFooter />
