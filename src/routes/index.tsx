@@ -351,6 +351,110 @@ function ProductCard({ row }: { row: MenuRow }) {
   );
 }
 
+const SENEGAL_PLATS = [
+  { src: platSenegalais1.url, alt: "Barquettes de poulet braisé et couscous" },
+  { src: platSenegalais2.url, alt: "Barquettes de poisson braisé et riz" },
+  { src: platSenegalais3.url, alt: "Barquettes de riz au safran et sauce" },
+  { src: platSenegalais4.url, alt: "Barquettes de poulet braisé et riz au safran" },
+  { src: platSenegalais5.url, alt: "Barquettes de poulet braisé, riz et légumes" },
+  { src: platSenegalais6.url, alt: "Barquettes de riz au safran et viande" },
+  { src: platSenegalais7.url, alt: "Barquettes de poulet, crevettes et couscous" },
+  { src: platSenegalais8.url, alt: "Barquettes de riz au poisson séché" },
+];
+
+const ASIE_PLACEHOLDERS: { icon: LucideIcon; label: string }[] = [
+  { icon: Soup, label: "Nouilles sautées" },
+  { icon: Shrimp, label: "Crevettes à l'ail" },
+  { icon: Salad, label: "Rouleaux de printemps" },
+  { icon: Utensils, label: "Riz cantonais" },
+  { icon: Croissant, label: "Nems croustillants" },
+];
+
+const EUROPE_PLACEHOLDERS: { icon: LucideIcon; label: string }[] = [
+  { icon: Croissant, label: "Gratin dauphinois" },
+  { icon: Utensils, label: "Filet de bœuf sauce" },
+  { icon: Salad, label: "Salade César" },
+  { icon: CakeSlice, label: "Desserts maison" },
+  { icon: Soup, label: "Velouté du jour" },
+];
+
+function MarqueeRow({
+  duration,
+  reverse = false,
+  children,
+}: {
+  duration: string;
+  reverse?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("marquee-row", reverse && "marquee-row-reverse")}>
+      <div
+        className="marquee-track flex w-max"
+        style={{ "--marquee-duration": duration } as CSSProperties}
+      >
+        <div className="flex gap-4 pr-4">{children}</div>
+        <div className="flex gap-4 pr-4" aria-hidden="true">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GalleryMarquee() {
+  return (
+    <section className="border-y border-border/70 bg-secondary/40 py-14">
+      <div className="mx-auto max-w-6xl px-4 pb-10">
+        <p className="text-center text-sm font-bold uppercase tracking-widest text-accent">
+          Notre cuisine
+        </p>
+        <h2 className="mt-2 text-center font-display text-3xl font-bold leading-tight sm:text-4xl">
+          Un aperçu de nos plats,
+          <span className="block italic text-accent">prêts à déguster.</span>
+        </h2>
+      </div>
+      <div className="flex flex-col gap-4">
+        <MarqueeRow duration="60s">
+          {SENEGAL_PLATS.map((p) => (
+            <img
+              key={p.src}
+              src={p.src}
+              alt={p.alt}
+              loading="lazy"
+              className="h-52 w-44 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-60 sm:w-52"
+            />
+          ))}
+        </MarqueeRow>
+        <MarqueeRow duration="55s" reverse>
+          {ASIE_PLACEHOLDERS.map((p) => (
+            <PlaceholderCard key={p.label} icon={p.icon} label={p.label} />
+          ))}
+        </MarqueeRow>
+        <MarqueeRow duration="65s">
+          {EUROPE_PLACEHOLDERS.map((p) => (
+            <PlaceholderCard key={p.label} icon={p.icon} label={p.label} />
+          ))}
+        </MarqueeRow>
+      </div>
+    </section>
+  );
+}
+
+function PlaceholderCard({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+  return (
+    <div className="flex h-52 w-44 shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-accent/40 bg-card text-center shadow-card sm:h-60 sm:w-52">
+      <div className="flex size-12 items-center justify-center rounded-full bg-accent/10">
+        <Icon className="size-6 text-accent" aria-hidden="true" />
+      </div>
+      <p className="px-3 font-display text-sm font-bold">{label}</p>
+      <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        Bientôt
+      </span>
+    </div>
+  );
+}
+
 const CUISINES = [
   "Cuisine sénégalaise",
   "Saveurs asiatiques",
