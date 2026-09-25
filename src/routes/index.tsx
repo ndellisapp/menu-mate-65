@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   CakeSlice,
   Croissant,
   Heart,
