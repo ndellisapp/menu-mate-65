@@ -9,7 +9,6 @@ import {
   Minus,
   Plus,
   Salad,
-  Shrimp,
   ShoppingBag,
   Soup,
   Utensils,
@@ -30,6 +29,16 @@ import platSenegalais5 from "@/assets/plat-senegalais-5.jpg.asset.json";
 import platSenegalais6 from "@/assets/plat-senegalais-6.jpg.asset.json";
 import platSenegalais7 from "@/assets/plat-senegalais-7.jpg.asset.json";
 import platSenegalais8 from "@/assets/plat-senegalais-8.jpg.asset.json";
+import platRow2_1 from "@/assets/plat-row2-1.jpg.asset.json";
+import platRow2_2 from "@/assets/plat-row2-2.jpg.asset.json";
+import platRow2_3 from "@/assets/plat-row2-3.jpg.asset.json";
+import platRow2_4 from "@/assets/plat-row2-4.jpg.asset.json";
+import platRow2_5 from "@/assets/plat-row2-5.jpg.asset.json";
+import platRow2_6 from "@/assets/plat-row2-6.jpg.asset.json";
+import platRow2_7 from "@/assets/plat-row2-7.jpg.asset.json";
+import platRow2_8 from "@/assets/plat-row2-8.jpg.asset.json";
+import platRow2_9 from "@/assets/plat-row2-9.jpg.asset.json";
+import platRow2_10 from "@/assets/plat-row2-10.jpg.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -362,12 +371,17 @@ const SENEGAL_PLATS = [
   { src: platSenegalais8.url, alt: "Barquettes de riz au poisson séché" },
 ];
 
-const ASIE_PLACEHOLDERS: { icon: LucideIcon; label: string }[] = [
-  { icon: Soup, label: "Nouilles sautées" },
-  { icon: Shrimp, label: "Crevettes à l'ail" },
-  { icon: Salad, label: "Rouleaux de printemps" },
-  { icon: Utensils, label: "Riz cantonais" },
-  { icon: Croissant, label: "Nems croustillants" },
+const ROW2_PLATS: { src: string; alt: string }[] = [
+  { src: platRow2_1.url, alt: "Salades de poulet grillé, avocat et légumes frais" },
+  { src: platRow2_2.url, alt: "Salades de poulet croustillant et crudités" },
+  { src: platRow2_3.url, alt: "Salades de crevettes, mangue et avocat" },
+  { src: platRow2_4.url, alt: "Salades de poulet grillé, pain frais et sauce maison" },
+  { src: platRow2_5.url, alt: "Poulet grillé, guacamole, riz et haricots rouges" },
+  { src: platRow2_6.url, alt: "Salades de filets croustillants et légumes" },
+  { src: platRow2_7.url, alt: "Salades de crudités, maïs, haricots verts et avocat" },
+  { src: platRow2_8.url, alt: "Salades de crevettes, mangue et citron vert" },
+  { src: platRow2_9.url, alt: "Salades de thon, œuf, olives et avocat" },
+  { src: platRow2_10.url, alt: "Vermicelles de crevettes sautées, saveurs asiatiques" },
 ];
 
 const EUROPE_PLACEHOLDERS: { icon: LucideIcon; label: string }[] = [
@@ -427,8 +441,14 @@ function GalleryMarquee() {
           ))}
         </MarqueeRow>
         <MarqueeRow duration="55s" reverse>
-          {ASIE_PLACEHOLDERS.map((p) => (
-            <PlaceholderCard key={p.label} icon={p.icon} label={p.label} />
+          {ROW2_PLATS.map((p) => (
+            <img
+              key={p.src}
+              src={p.src}
+              alt={p.alt}
+              loading="lazy"
+              className="h-52 w-44 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-60 sm:w-52"
+            />
           ))}
         </MarqueeRow>
         <MarqueeRow duration="65s">
