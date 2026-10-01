@@ -18,6 +18,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminWeeksRouteImport } from './routes/admin/weeks'
+import { Route as ApiPublicPaydunyaIpnRouteImport } from './routes/api/public/paydunya-ipn'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,11 @@ const AdminWeeksRoute = AdminWeeksRouteImport.update({
   path: '/weeks',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicPaydunyaIpnRoute = ApiPublicPaydunyaIpnRouteImport.update({
+  id: '/api/public/paydunya-ipn',
+  path: '/api/public/paydunya-ipn',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin': typeof AdminIndexRoute
+  '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/weeks'
     | '/admin/'
+    | '/api/public/paydunya-ipn'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/weeks'
     | '/admin'
+    | '/api/public/paydunya-ipn'
   id:
     | '__root__'
     | '/'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/weeks'
     | '/admin/'
+    | '/api/public/paydunya-ipn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CommandeRoute: typeof CommandeRoute
   ConfirmationRoute: typeof ConfirmationRoute
+  ApiPublicPaydunyaIpnRoute: typeof ApiPublicPaydunyaIpnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWeeksRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/paydunya-ipn': {
+      id: '/api/public/paydunya-ipn'
+      path: '/api/public/paydunya-ipn'
+      fullPath: '/api/public/paydunya-ipn'
+      preLoaderRoute: typeof ApiPublicPaydunyaIpnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -231,6 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CommandeRoute: CommandeRoute,
   ConfirmationRoute: ConfirmationRoute,
+  ApiPublicPaydunyaIpnRoute: ApiPublicPaydunyaIpnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
