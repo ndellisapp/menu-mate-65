@@ -5,6 +5,8 @@ import { CheckCircle2 } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { formatDay, formatPrice } from "@/lib/format";
+import { useServerFn } from "@tanstack/react-start";
+import { checkPayment } from "@/lib/paydunya.functions";
 
 export const Route = createFileRoute("/confirmation")({
   head: () => ({
@@ -39,6 +41,8 @@ type StoredOrder = {
 
 function ConfirmationPage() {
   const [order, setOrder] = useState<StoredOrder | null>(null);
+  const [payStatus, setPayStatus] = useState<string | null>(null);
+  const check = useServerFn(checkPayment);
 
   useEffect(() => {
     try {
@@ -47,7 +51,14 @@ function ConfirmationPage() {
     } catch {
       /* ignore */
     }
-  }, []);
+    const token = new URLSearchParams(window.location.search).get("token");
+    if (token) {
+      setPayStatus("checking");
+      check({ data: { token } })
+        .then((r) => setPayStatus(r.status))
+        .catch(() => setPayStatus("unknown"));
+    }
+  }, [check]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,6 +81,17 @@ function ConfirmationPage() {
             </div>
             <p className="mt-4 text-sm text-muted-foreground">Votre référence de commande :</p>
             <p className="font-display text-3xl font-bold text-accent">{order.reference}</p>
+            {payStatus && (
+              <p className="mt-4 rounded-lg border border-border p-3 text-sm font-medium">
+                {payStatus === "checking"
+                  ? "Vérification du paiement en cours…"
+                  : payStatus === "completed"
+                    ? "Paiement PayDunya confirmé. Merci !"
+                    : payStatus === "pending"
+                      ? "Paiement en attente de confirmation. Nous vous tiendrons informé."
+                      : "Le paiement n'a pas abouti. Contactez-nous sur WhatsApp au 78 186 72 72."}
+              </p>
+            )}
 
             <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
               <Info label="Nom" value={`${order.customer.last_name} ${order.customer.first_name}`} />

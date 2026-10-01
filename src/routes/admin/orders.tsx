@@ -215,6 +215,8 @@ function OrdersPage() {
                       className="h-9 rounded-md border border-input bg-background px-2 text-sm"
                     >
                       <option value="non_paye">Non payé</option>
+                      <option value="en_attente_paiement">Paiement en attente</option>
+                      <option value="echec_paiement">Paiement échoué</option>
                       <option value="acompte_a_verifier">Acompte à vérifier</option>
                       <option value="acompte_paye">Acompte payé</option>
                       <option value="paye">Payé</option>

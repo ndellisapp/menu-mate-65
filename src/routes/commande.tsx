@@ -11,13 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DEPOSIT_AMOUNT,
-  PAYMENT_NUMBER,
-  isCancelledError,
-  placeOrder,
-  publicMenuQuery,
-} from "@/lib/api";
+import { useServerFn } from "@tanstack/react-start";
+import { DEPOSIT_AMOUNT, isCancelledError, placeOrder, publicMenuQuery } from "@/lib/api";
+import { startPayment } from "@/lib/paydunya.functions";
 import { useCart } from "@/lib/cart";
 import { formatDay, formatPrice, todayISO } from "@/lib/format";
 
@@ -60,8 +56,6 @@ function CheckoutPage() {
   const { items, setQuantity, remove, total, clear } = useCart();
   const { data: menu } = useQuery(publicMenuQuery());
   const [accepted, setAccepted] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"wave" | "orange_money" | "">("");
-  const [paymentReference, setPaymentReference] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     first_name: "",
@@ -93,18 +87,25 @@ function CheckoutPage() {
     });
   }, [items, menu]);
 
+  const pay = useServerFn(startPayment);
   const mutation = useMutation({
-    mutationFn: placeOrder,
-    onSuccess: (result) => {
-      const payload = {
+    mutationFn: async (payload: Parameters<typeof placeOrder>[0]) => {
+      const result = await placeOrder(payload);
+      const payload2 = {
         reference: result.reference,
         total: result.total,
+        order_type: result.order_type,
+        deposit_required: result.deposit_required,
         customer: form,
         items: items.map((i) => ({ ...i })),
       };
-      window.sessionStorage.setItem("traiteur.last_order", JSON.stringify(payload));
+      window.sessionStorage.setItem("traiteur.last_order", JSON.stringify(payload2));
       clear();
-      navigate({ to: "/confirmation" });
+      const { url } = await pay({ data: { orderId: result.order_id } });
+      return url;
+    },
+    onSuccess: (url) => {
+      window.location.href = url;
     },
     onError: (error: Error) => {
       if (isCancelledError(error)) return;
@@ -132,21 +133,8 @@ function CheckoutPage() {
       toast.error("Certains produits ne sont plus disponibles, mettez le panier à jour.");
       return;
     }
-    if (isPreorder && !paymentMethod) {
-      toast.error("Choisissez Wave ou Orange Money pour payer l'acompte de 1 500 FCFA.");
-      return;
-    }
-    if (isPreorder && paymentReference.trim().length < 4) {
-      toast.error("Saisissez l'identifiant de la transaction de votre acompte.");
-      return;
-    }
     mutation.mutate({
-      customer: {
-        ...parsed.data,
-        ...(isPreorder
-          ? { payment_method: paymentMethod, payment_reference: paymentReference.trim() }
-          : {}),
-      },
+      customer: parsed.data,
       items: items.map((i) => ({ day_product_id: i.day_product_id, quantity: i.quantity })),
     });
   }
@@ -303,46 +291,22 @@ function CheckoutPage() {
                   <span>{formatPrice(total)}</span>
                 </div>
 
-                {isPreorder && (
-                  <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
-                    <p className="font-semibold text-primary">
-                      Acompte de précommande : {formatPrice(DEPOSIT_AMOUNT)}
-                    </p>
-                    <p className="text-muted-foreground">
-                      Envoyez l'acompte au <strong>{PAYMENT_NUMBER}</strong> puis indiquez
-                      l'identifiant de la transaction. Le reste est réglé à la livraison.
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant={paymentMethod === "wave" ? "default" : "outline"}
-                        onClick={() => setPaymentMethod("wave")}
-                      >
-                        Wave
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={paymentMethod === "orange_money" ? "default" : "outline"}
-                        onClick={() => setPaymentMethod("orange_money")}
-                      >
-                        Orange Money
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="payment_reference">ID de la transaction *</Label>
-                      <Input
-                        id="payment_reference"
-                        placeholder="Ex : TXN123456789"
-                        value={paymentReference}
-                        maxLength={60}
-                        onChange={(e) => setPaymentReference(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+                  <p className="font-semibold text-primary">
+                    {isPreorder
+                      ? `À payer maintenant : acompte de ${formatPrice(DEPOSIT_AMOUNT)}`
+                      : `À payer maintenant : ${formatPrice(total)}`}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Paiement sécurisé par PayDunya : Wave, Orange Money, Free Money ou carte
+                    bancaire.
+                    {isPreorder &&
+                      " L'acompte de 1 500 FCFA n'est pas remboursable ; le reste est réglé à la livraison."}
+                  </p>
+                </div>
 
                 <div className="rounded-lg bg-secondary p-3 text-sm text-secondary-foreground">
-                  <strong>Important :</strong> toute précommande validée est non remboursable.
+                  <strong>Important :</strong> toute commande validée est non remboursable.
                 </div>
 
                 <label className="flex items-start gap-3 text-sm">
@@ -352,7 +316,8 @@ function CheckoutPage() {
                     className="mt-0.5"
                   />
                   <span>
-                    J'ai pris connaissance et j'accepte que ma précommande soit non remboursable.
+                    J'ai pris connaissance et j'accepte que ma commande (et l'acompte de 1 500 FCFA
+                    pour une précommande) soit non remboursable.
                   </span>
                 </label>
 
@@ -362,7 +327,7 @@ function CheckoutPage() {
                   disabled={!accepted || mutation.isPending}
                   onClick={submit}
                 >
-                  {mutation.isPending ? "Validation en cours…" : "Valider ma précommande"}
+                  {mutation.isPending ? "Redirection vers le paiement…" : "Payer avec PayDunya"}
                 </Button>
               </div>
             </aside>

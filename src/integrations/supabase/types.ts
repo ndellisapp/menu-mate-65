@@ -225,6 +225,7 @@ export type Database = {
           last_name: string
           order_type: string
           paid_amount: number
+          paydunya_token: string | null
           payment_method: string | null
           payment_reference: string | null
           payment_status: string
@@ -245,6 +246,7 @@ export type Database = {
           last_name: string
           order_type?: string
           paid_amount?: number
+          paydunya_token?: string | null
           payment_method?: string | null
           payment_reference?: string | null
           payment_status?: string
@@ -265,6 +267,7 @@ export type Database = {
           last_name?: string
           order_type?: string
           paid_amount?: number
+          paydunya_token?: string | null
           payment_method?: string | null
           payment_reference?: string | null
           payment_status?: string
