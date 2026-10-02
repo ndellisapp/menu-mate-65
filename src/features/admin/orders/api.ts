@@ -32,15 +32,20 @@ export type OrderItem = {
   amount: number;
 };
 
+/** Les nouvelles commandes apparaissent sans recharger la page. */
+const ORDERS_REFRESH_MS = 30_000;
+
 export const ordersQuery = () =>
   queryOptions({
     queryKey: ["orders"],
     queryFn: () =>
       run<Order[]>(db.from("orders").select("*").order("created_at", { ascending: false })),
+    refetchInterval: ORDERS_REFRESH_MS,
   });
 
 export const orderItemsQuery = () =>
   queryOptions({
     queryKey: ["order_items"],
     queryFn: () => run<OrderItem[]>(db.from("order_items").select("*")),
+    refetchInterval: ORDERS_REFRESH_MS,
   });

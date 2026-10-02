@@ -11,10 +11,8 @@ const EVENT_TYPES: { icon: LucideIcon; label: string }[] = [
 
 export function CateringEventsSection() {
   return (
-    <section id="traiteur" className="relative scroll-mt-24 text-sidebar-foreground">
-      {/* voile marron sur la seule partie Service traiteur */}
-      <div aria-hidden="true" className="absolute inset-0 bg-sidebar/70" />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:pb-24 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+    <section id="traiteur" className="scroll-mt-24 text-sidebar-foreground">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:pb-24 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div>
           <p className="text-sm font-bold uppercase tracking-widest text-accent">
             Service traiteur sur devis
@@ -23,7 +21,7 @@ export function CateringEventsSection() {
             Vos grandes occasions,
             <span className="block italic text-accent">notre savoir-faire.</span>
           </h2>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-sidebar-foreground/85 sm:text-base">
+          <p className="mt-5 max-w-xl text-sm leading-7 text-sidebar-foreground/90 sm:text-base">
             Mariages, baptêmes, anniversaires, événements d'entreprise : nous composons des buffets
             et des tables sur mesure, adaptés à votre nombre d'invités et à vos envies. Chaque
             prestation est étudiée sur devis, avec les mêmes plats généreux et élégants que nos
@@ -33,7 +31,7 @@ export function CateringEventsSection() {
             {EVENT_TYPES.map((item) => (
               <span
                 key={item.label}
-                className="flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-xs font-semibold text-accent backdrop-blur-sm"
+                className="flex items-center gap-2 rounded-full border border-accent/40 bg-sidebar/40 px-4 py-1.5 text-xs font-semibold text-accent backdrop-blur-sm"
               >
                 <item.icon className="size-3.5" aria-hidden="true" />
                 {item.label}
@@ -52,7 +50,7 @@ export function CateringEventsSection() {
                 Demander un devis sur WhatsApp
               </a>
             </Button>
-            <p className="text-sm font-semibold text-sidebar-foreground/85">
+            <p className="text-sm font-semibold text-sidebar-foreground/90">
               WhatsApp : <span className="text-accent">78 186 72 72</span>
             </p>
           </div>

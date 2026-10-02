@@ -307,3 +307,43 @@
     opacity: 0;
   }
 }
+
+/*
+ * Espace gérant — thème « corporate » : surfaces neutres, une seule police,
+ * le brun du logo réservé aux actions. Appliqué sur <body> pendant la session
+ * gérant (les fenêtres modales héritent ainsi du thème) sans toucher au site client.
+ */
+.admin-shell {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --radius: 0.625rem;
+  --background: #f5f6f8;
+  --foreground: #18202e;
+  --card: #ffffff;
+  --card-foreground: #18202e;
+  --popover: #ffffff;
+  --popover-foreground: #18202e;
+  --primary: #6b4428;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0f3;
+  --secondary-foreground: #18202e;
+  --muted: #f1f3f5;
+  --muted-foreground: #5f6b7a;
+  --accent: #eef0f3;
+  --accent-foreground: #18202e;
+  --border: #e3e6eb;
+  --input: #d5dae1;
+  --ring: #6b4428;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05);
+  /* Teinte de marque pour les fonds d'icônes et l'onglet actif */
+  --brand-tint: #f5ede6;
+  /* Brun des graphiques : assez saturé pour ne pas paraître gris (validé) */
+  --brand-chart: #9a5b2e;
+}
+
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell .font-display {
+  letter-spacing: -0.01em;
+}

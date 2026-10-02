@@ -2,7 +2,7 @@ import chefImage from "@/assets/chef-ndellis.jpg";
 
 export function ChefSection() {
   return (
-    <section className="text-foreground">
+    <section className="text-sidebar-foreground">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-20 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="relative mx-auto order-first w-full max-w-sm">
           <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
@@ -21,13 +21,13 @@ export function ChefSection() {
             Ndellis Signé,
             <span className="block italic text-accent">cheffe exécutive & styliste culinaire</span>
           </h2>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-foreground/80 sm:text-base">
+          <p className="mt-5 max-w-xl text-sm leading-7 text-sidebar-foreground/90 sm:text-base">
             Une femme passionnée, animée d'un amour inconditionnel pour l'art culinaire et le
             bien-être des êtres humains. À la tête de Ndelli's Traiteur depuis 2019, elle imagine
             chaque menu comme une œuvre : des plats généreux, élégants et fidèles aux saveurs
             sénégalaises.
           </p>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-foreground/80 sm:text-base">
+          <p className="mt-4 max-w-xl text-sm leading-7 text-sidebar-foreground/90 sm:text-base">
             Son parcours s'est forgé aux côtés des plus grandes tables de Dakar : quatorze ans à la
             cuisine du Radisson Blu Hôtel Dakar, une expérience à la 2STV, et une formation en
             gastronomie au CFPP Sénégal avec un BT en cuisine et restauration. De cette richesse est
@@ -43,7 +43,7 @@ export function ChefSection() {
             ].map((item) => (
               <span
                 key={item}
-                className="rounded-full border border-accent/40 bg-card/80 px-4 py-1.5 text-xs font-semibold text-accent backdrop-blur-sm"
+                className="rounded-full border border-accent/40 bg-sidebar/40 px-4 py-1.5 text-xs font-semibold text-accent backdrop-blur-sm"
               >
                 {item}
               </span>

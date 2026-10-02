@@ -92,3 +92,26 @@ export const STATE_LABELS: Record<string, string> = {
   desactive: "Indisponible",
   jour_ferme: "Journée fermée",
 };
+
+export const PAYMENT_STATUSES = [
+  "non_paye",
+  "en_attente_paiement",
+  "echec_paiement",
+  "acompte_a_verifier",
+  "acompte_paye",
+  "paye",
+] as const;
+
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  non_paye: "Non payé",
+  en_attente_paiement: "Paiement en attente",
+  echec_paiement: "Paiement échoué",
+  acompte_a_verifier: "Acompte à vérifier",
+  acompte_paye: "Acompte payé",
+  paye: "Payé",
+};
+
+export const CATEGORY_LABELS: Record<string, string> = {
+  plat: "Plat",
+  jus: "Jus",
+};

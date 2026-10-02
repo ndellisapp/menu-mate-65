@@ -1,25 +1,35 @@
 import { Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowUpRight,
   CalendarRange,
+  ChevronDown,
+  ExternalLink,
   LayoutDashboard,
   LogOut,
   Package,
   ShoppingBag,
-  UtensilsCrossed,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import logo from "@/assets/logo-ndellis.png";
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
+import { ordersQuery } from "@/features/admin/orders/api";
 
 const NAV = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
-  { to: "/admin/weeks", label: "Semaines & menus", icon: CalendarRange, exact: false },
-  { to: "/admin/products", label: "Produits", icon: Package, exact: false },
   { to: "/admin/orders", label: "Commandes", icon: ShoppingBag, exact: false },
+  { to: "/admin/weeks", label: "Menus", icon: CalendarRange, exact: false },
+  { to: "/admin/products", label: "Catalogue", icon: Package, exact: false },
 ] as const;
 
 export function AdminLayout() {
@@ -27,6 +37,13 @@ export function AdminLayout() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [state, setState] = useState<"loading" | "ready" | "denied">("loading");
+  const [email, setEmail] = useState<string | null>(null);
+
+  // Thème gérant posé sur <body> : les fenêtres modales (rendues hors du layout) en héritent.
+  useEffect(() => {
+    document.body.classList.add("admin-shell");
+    return () => document.body.classList.remove("admin-shell");
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -37,6 +54,7 @@ export function AdminLayout() {
         navigate({ to: "/auth" });
         return;
       }
+      setEmail(data.user.email ?? null);
       const { data: isAdmin } = await db.rpc("is_admin");
       if (!active) return;
       if (isAdmin) {
@@ -52,6 +70,29 @@ export function AdminLayout() {
     };
   }, [navigate]);
 
+  const { data: orders = [] } = useQuery({ ...ordersQuery(), enabled: state === "ready" });
+  const newOrders = orders.filter((o) => o.status === "nouvelle").length;
+
+  // Prévient le gérant quand une commande arrive pendant qu'il travaille.
+  const knownIds = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (state !== "ready" || orders.length === 0) return;
+    const ids = new Set(orders.map((o) => o.id));
+    if (knownIds.current) {
+      const arrived = orders.filter((o) => !knownIds.current!.has(o.id));
+      if (arrived.length === 1) {
+        toast.info(`Nouvelle commande de ${arrived[0]!.first_name} ${arrived[0]!.last_name}`, {
+          action: { label: "Voir", onClick: () => navigate({ to: "/admin/orders" }) },
+        });
+      } else if (arrived.length > 1) {
+        toast.info(`${arrived.length} nouvelles commandes`, {
+          action: { label: "Voir", onClick: () => navigate({ to: "/admin/orders" }) },
+        });
+      }
+    }
+    knownIds.current = ids;
+  }, [orders, state, navigate]);
+
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -62,22 +103,26 @@ export function AdminLayout() {
 
   if (state === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cream">
-        <p className="text-muted-foreground">Chargement du back-office…</p>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
+          <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary motion-reduce:animate-none" />
+          Chargement de l'espace gérant…
+        </div>
       </div>
     );
   }
 
   if (state === "denied") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cream px-4">
-        <div className="surface-card max-w-md p-8 text-center">
-          <h1 className="font-display text-xl font-bold">Accès refusé</h1>
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
+          <h1 className="text-xl font-semibold">Accès réservé au gérant</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Votre compte n'a pas les droits d'administration.
+            Le compte {email ? <strong className="text-foreground">{email}</strong> : "connecté"}{" "}
+            n'a pas les droits d'administration.
           </p>
-          <Button className="mt-4" variant="secondary" onClick={signOut}>
-            Se déconnecter
+          <Button className="mt-6" onClick={signOut}>
+            Changer de compte
           </Button>
         </div>
       </div>
@@ -85,96 +130,172 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground shadow-warm">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:gap-8">
-          <div className="flex items-center justify-between gap-4">
-            <Link
-              to="/admin"
-              className="flex shrink-0 items-center gap-3"
-              aria-label="Ndelli's — Tableau de bord"
-            >
-              <span className="flex size-10 items-center justify-center rounded-md bg-accent text-accent-foreground">
-                <UtensilsCrossed className="size-5" />
-              </span>
-              <span className="leading-tight">
-                <span className="block font-display text-xl font-bold">
-                  Ndelli's<span className="text-accent">.</span>
-                </span>
-                <span className="block text-[11px] font-medium uppercase text-sidebar-foreground/65">
-                  Espace gérant
-                </span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-1 lg:hidden">
-              <Button
-                asChild
-                variant="ghost"
-                size="icon"
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
-                title="Voir le site"
-              >
-                <Link to="/">
-                  <ArrowUpRight className="size-4" />
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={signOut}
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
-                title="Déconnexion"
-                aria-label="Déconnexion"
-              >
-                <LogOut className="size-4" />
-              </Button>
-            </div>
-          </div>
-          <nav
-            aria-label="Navigation gérant"
-            className="flex w-full min-w-0 gap-1 overflow-x-auto border-t border-sidebar-border pt-3 scrollbar-hide lg:w-auto lg:flex-1 lg:border-t-0 lg:pt-0"
-          >
+    <AdminShell email={email} newOrders={newOrders} onSignOut={signOut}>
+      <Outlet />
+    </AdminShell>
+  );
+}
+
+/** Habillage de l'espace gérant : barre latérale, barre du haut et onglets mobiles. */
+export function AdminShell({
+  email,
+  newOrders,
+  onSignOut,
+  children,
+}: {
+  email: string | null;
+  newOrders: number;
+  onSignOut: () => void;
+  children: ReactNode;
+}) {
+  const initial = (email ?? "G").slice(0, 1).toUpperCase();
+
+  return (
+    <div className="min-h-screen overflow-x-clip bg-background lg:pl-56">
+      {/* Barre latérale (ordinateur) */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border bg-card lg:flex">
+        <Brand />
+        <nav aria-label="Navigation gérant" className="flex-1 px-3 py-3">
+          <ul className="space-y-px">
             {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                activeOptions={{ exact: item.exact }}
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-accent"
-                activeProps={{
-                  className:
-                    "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground",
-                }}
-              >
-                <item.icon className="size-4" />
-                {item.label}
-              </Link>
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  activeOptions={{ exact: item.exact }}
+                  className="relative flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                  activeProps={{
+                    className:
+                      "!bg-[var(--brand-tint)] !text-primary before:absolute before:inset-y-1.5 before:-left-3 before:w-[3px] before:rounded-r before:bg-primary",
+                  }}
+                >
+                  <item.icon className="size-4" />
+                  <span className="flex-1">{item.label}</span>
+                  {item.to === "/admin/orders" && newOrders > 0 && <NewBadge count={newOrders} />}
+                </Link>
+              </li>
             ))}
-          </nav>
-          <div className="hidden items-center gap-2 lg:flex">
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="rounded-full text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            >
-              <Link to="/">
-                <ArrowUpRight className="size-4" /> Voir le site
-              </Link>
-            </Button>
-            <Button
-              size="sm"
-              onClick={signOut}
-              className="rounded-full bg-accent text-accent-foreground hover:opacity-90"
-            >
-              <LogOut className="size-4" /> Déconnexion
-            </Button>
-          </div>
+          </ul>
+        </nav>
+        <div className="border-t border-border p-3">
+          <Link
+            to="/"
+            className="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <ExternalLink className="size-4" /> Voir le site client
+          </Link>
         </div>
+      </aside>
+
+      {/* Barre du haut */}
+      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-6 lg:h-16 lg:px-8">
+        <div className="lg:hidden">
+          <Brand compact />
+        </div>
+        <p className="hidden text-sm text-muted-foreground lg:block">
+          {new Intl.DateTimeFormat("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            timeZone: "Africa/Dakar",
+          }).format(new Date())}
+        </p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                {initial}
+              </span>
+              <span className="hidden max-w-48 truncate font-medium sm:block">
+                {email ?? "Gérant"}
+              </span>
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuLabel className="font-normal">
+              <span className="block text-xs text-muted-foreground">Connecté en tant que</span>
+              <span className="block truncate font-medium">{email ?? "Gérant"}</span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/">
+                <ExternalLink /> Voir le site client
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onSignOut}>
+              <LogOut /> Se déconnecter
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <Outlet />
-      </main>
+      <main className="max-w-7xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">{children}</main>
+
+      {/* Onglets du bas (mobile) */}
+      <nav
+        aria-label="Navigation gérant"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
+      >
+        {NAV.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            activeOptions={{ exact: item.exact }}
+            className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-ring"
+            activeProps={{ className: "!text-primary" }}
+          >
+            <span className="relative">
+              <item.icon className="size-5" />
+              {item.to === "/admin/orders" && newOrders > 0 && (
+                <span className="absolute -right-3.5 -top-2">
+                  <NewBadge count={newOrders} />
+                </span>
+              )}
+            </span>
+            {item.to === "/admin" ? "Accueil" : item.label}
+          </Link>
+        ))}
+      </nav>
     </div>
+  );
+}
+
+function Brand({ compact = false }: { compact?: boolean }) {
+  return (
+    <Link
+      to="/admin"
+      className={
+        compact
+          ? "flex items-center gap-2.5"
+          : "flex h-16 items-center gap-2.5 border-b border-border px-4"
+      }
+    >
+      <img
+        src={logo}
+        alt=""
+        width={256}
+        height={256}
+        className="size-9 shrink-0 rounded-full border border-border bg-white object-cover"
+      />
+      <span className="leading-tight">
+        <span className="block text-sm font-semibold">Ndelli's Traiteur</span>
+        <span className="block text-xs text-muted-foreground">Espace gérant</span>
+      </span>
+    </Link>
+  );
+}
+
+function NewBadge({ count }: { count: number }) {
+  return (
+    <span
+      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold tabular-nums text-primary-foreground"
+      aria-label={`${count} nouvelle${count > 1 ? "s" : ""} commande${count > 1 ? "s" : ""}`}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
   );
 }

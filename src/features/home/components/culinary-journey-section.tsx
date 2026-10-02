@@ -1,6 +1,7 @@
 import cuisinePoster from "@/assets/cheffe-cuisine-poster.jpg";
 import cuisineVideo from "@/assets/cheffe-cuisine.mp4";
 import cuisineVideoWebm from "@/assets/cheffe-cuisine.webm";
+import motifOndule from "@/assets/motif-ondule.webp";
 
 const CUISINES = [
   "Cuisine sénégalaise",
@@ -11,21 +12,27 @@ const CUISINES = [
 
 export function CulinaryJourneySection() {
   return (
-    <section className="border-y border-border/70 bg-secondary/40">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-[minmax(0,6fr)_minmax(0,6fr)]">
+    <section className="relative overflow-hidden bg-sidebar text-sidebar-foreground">
+      {/* motif ondulé ton sur ton */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{ backgroundImage: `url(${motifOndule})`, backgroundSize: "900px" }}
+      />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-[minmax(0,6fr)_minmax(0,6fr)]">
         <div className="order-first md:order-none">
           <p className="text-sm font-bold uppercase tracking-widest text-accent">Nos clients</p>
           <h2 className="mt-3 font-display text-3xl font-bold leading-tight sm:text-4xl">
             Un voyage culinaire,
             <span className="block italic text-accent">à chaque commande.</span>
           </h2>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
+          <p className="mt-5 max-w-xl text-sm leading-7 text-sidebar-foreground/80 sm:text-base">
             Familles, entreprises et événements : nos clients nous confient des plats divers et
             variés — du thiéboudienne et du poulet yassa aux saveurs asiatiques, en passant par les
             grandes classiques de la cuisine européenne. Chaque menu est pensé comme un voyage,
             adapté à vos envies et à l'occasion.
           </p>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
+          <p className="mt-4 max-w-xl text-sm leading-7 text-sidebar-foreground/80 sm:text-base">
             Dites-nous ce qui vous fait envie : nous composons la table, les jus frais et les
             quantités, et nous livrons tout prêt à déguster.
           </p>

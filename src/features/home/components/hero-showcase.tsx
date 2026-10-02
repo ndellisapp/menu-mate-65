@@ -10,8 +10,9 @@ export function HeroShowcase() {
         src={heroImage}
         alt=""
         aria-hidden="true"
-        width={1600}
-        height={912}
+        width={1920}
+        height={714}
+        fetchPriority="high"
         className="absolute inset-0 size-full object-cover"
       />
       {/* voile sombre pour la lisibilité du titre centré */}

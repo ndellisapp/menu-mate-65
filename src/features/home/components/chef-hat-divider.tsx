@@ -12,7 +12,7 @@ export function ChefHatDivider() {
           width={500}
           height={421}
           loading="lazy"
-          className="deco-float w-20 shrink-0 select-none drop-shadow-[0_10px_18px_rgba(60,40,20,0.35)] sm:w-28"
+          className="deco-float w-20 shrink-0 select-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)] sm:w-28"
         />
         <DividerLine side="right" />
       </div>

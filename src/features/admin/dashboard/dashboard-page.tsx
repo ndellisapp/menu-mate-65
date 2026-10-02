@@ -1,145 +1,563 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Printer } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useMemo, useState, type ReactNode } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Gauge,
+  Printer,
+  ShoppingBag,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Button } from "@/components/ui/button";
-import { adminMenuQuery } from "@/features/menu/api";
+import { adminMenuQuery, type MenuRow } from "@/features/menu/api";
 import { orderItemsQuery, ordersQuery } from "@/features/admin/orders/api";
-import { formatDay, formatPrice, todayISO } from "@/lib/format";
+import { formatDay, formatPrice, todayISO, weekdayLabel } from "@/lib/format";
 import { printProduction } from "@/features/admin/orders/print";
+import { addDays } from "@/features/admin/menu-planning/calendar";
+import { EmptyState, PageHeader, ProductThumb } from "@/features/admin/components/admin-ui";
+import { cn } from "@/lib/utils";
+
+const CHART_DAYS = 7;
+// Les attributs SVG de recharts ne résolvent pas les variables CSS : valeurs du thème gérant (styles.css).
+const BRAND = "#6b4428";
+const BRAND_CHART = "#9a5b2e";
+const GRID = "#e3e6eb";
+const MUTED = "#5f6b7a";
+
+/**
+ * La cuisine prépare chaque jour une quantité prévue, quelles que soient les commandes.
+ * Les précommandes servent à savoir s'il faut en ajouter : un plat est « à renforcer »
+ * quand il lui reste peu de portions ou qu'il est déjà précommandé à 80 % ou plus.
+ */
+const LOW_PORTIONS = 3;
+const HIGH_DEMAND_RATIO = 0.8;
+
+type DishLevel = "epuise" | "renforcer" | "ok";
+
+function dishLevel(row: MenuRow): DishLevel {
+  if (row.stock_left <= 0) return "epuise";
+  const ratio = row.stock_initial > 0 ? row.stock_reserved / row.stock_initial : 0;
+  if (row.stock_left <= LOW_PORTIONS || ratio >= HIGH_DEMAND_RATIO) return "renforcer";
+  return "ok";
+}
 
 export function Dashboard() {
   const { data: orders = [] } = useQuery(ordersQuery());
   const { data: items = [] } = useQuery(orderItemsQuery());
   const { data: menu = [] } = useQuery(adminMenuQuery());
-  const [day, setDay] = useState(todayISO());
-
-  const days = useMemo(() => [...new Set(menu.map((m) => m.day_date))].sort(), [menu]);
+  const today = todayISO();
+  const [day, setDay] = useState(today);
 
   const cancelledIds = useMemo(
     () => new Set(orders.filter((o) => o.status === "annulee").map((o) => o.id)),
     [orders],
   );
-
-  const dayItems = useMemo(
-    () => items.filter((i) => i.day_date === day && !cancelledIds.has(i.order_id)),
-    [items, day, cancelledIds],
+  const validItems = useMemo(
+    () => items.filter((i) => !cancelledIds.has(i.order_id)),
+    [items, cancelledIds],
   );
-
-  const production = useMemo(() => {
-    const map = new Map<string, { name: string; category: string; quantity: number }>();
-    dayItems.forEach((i) => {
-      const key = `${i.product_name}|${i.category}`;
-      const current = map.get(key) ?? { name: i.product_name, category: i.category, quantity: 0 };
-      current.quantity += i.quantity;
-      map.set(key, current);
-    });
-    return [...map.values()].sort((a, b) => b.quantity - a.quantity);
-  }, [dayItems]);
+  const dayItems = useMemo(() => validItems.filter((i) => i.day_date === day), [validItems, day]);
 
   const ordersOfDay = useMemo(() => {
     const orderIds = new Set(dayItems.map((i) => i.order_id));
     return orders.filter((o) => orderIds.has(o.id));
   }, [dayItems, orders]);
 
-  const revenue = dayItems.reduce((sum, i) => sum + i.amount, 0);
-  const meals = production.filter((p) => p.category === "plat").reduce((s, p) => s + p.quantity, 0);
-  const juices = production.filter((p) => p.category === "jus").reduce((s, p) => s + p.quantity, 0);
+  // Plats au menu du jour : prévu, précommandé, restant.
+  const dishes = useMemo(
+    () =>
+      menu
+        .filter((m) => m.day_date === day && m.is_active)
+        .sort((a, b) => b.stock_reserved - a.stock_reserved),
+    [menu, day],
+  );
+  const planned = dishes.reduce((s, d) => s + d.stock_initial, 0);
+  const reserved = dishes.reduce((s, d) => s + d.stock_reserved, 0);
+  const toReinforce = dishes.filter((d) => dishLevel(d) !== "ok");
 
-  const lowStock = menu.filter((m) => m.day_date >= todayISO() && m.stock_left <= 3);
+  // Jus précommandés (ils ont leur propre stock, hors menu du jour).
+  const juices = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const i of dayItems) {
+      if (i.category !== "jus") continue;
+      map.set(i.product_name, (map.get(i.product_name) ?? 0) + i.quantity);
+    }
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [dayItems]);
+
+  // Liste à imprimer : quantités précommandées par produit.
+  const preorderList = useMemo(() => {
+    const map = new Map<string, { name: string; category: string; quantity: number }>();
+    for (const i of dayItems) {
+      const key = `${i.product_name}|${i.category}`;
+      const row = map.get(key) ?? { name: i.product_name, category: i.category, quantity: 0 };
+      row.quantity += i.quantity;
+      map.set(key, row);
+    }
+    return [...map.values()].sort((a, b) => b.quantity - a.quantity);
+  }, [dayItems]);
+
+  const revenue = dayItems.reduce((sum, i) => sum + i.amount, 0);
+  // Seules les commandes entièrement payées comptent comme encaissées (un acompte reste « à encaisser »).
+  const paidIds = useMemo(
+    () => new Set(orders.filter((o) => o.payment_status === "paye").map((o) => o.id)),
+    [orders],
+  );
+  const cashed = dayItems.filter((i) => paidIds.has(i.order_id)).reduce((s, i) => s + i.amount, 0);
+
+  const toConfirm = orders.filter((o) => o.status === "nouvelle");
+  const toConfirmOfDay = ordersOfDay.filter((o) => o.status === "nouvelle").length;
+  const upcomingAlerts = menu.filter(
+    (m) => m.day_date > day && m.is_active && dishLevel(m) !== "ok",
+  );
+
+  // Précommandes par jour de livraison, sur les 7 jours qui se terminent au jour choisi.
+  const chart = useMemo(() => {
+    const start = addDays(day, -(CHART_DAYS - 1));
+    const perDay = new Map<string, Set<string>>();
+    for (const item of validItems) {
+      if (item.day_date < start || item.day_date > day) continue;
+      const set = perDay.get(item.day_date) ?? new Set<string>();
+      set.add(item.order_id);
+      perDay.set(item.day_date, set);
+    }
+    return Array.from({ length: CHART_DAYS }, (_, index) => {
+      const date = addDays(start, index);
+      const label = `${weekdayLabel(date).slice(0, 3)} ${Number(date.slice(8, 10))}`;
+      return { date, label, orders: perDay.get(date)?.size ?? 0 };
+    });
+  }, [validItems, day]);
+  const chartTotal = chart.reduce((s, d) => s + d.orders, 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Tableau de bord</h1>
-          <p className="text-sm text-muted-foreground">Production et suivi journalier</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            aria-label="Choisir un jour"
-            value={day}
-            onChange={(e) => setDay(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            {(days.includes(day) ? days : [day, ...days]).map((d) => (
-              <option key={d} value={d}>
-                {formatDay(d)}
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="secondary"
-            onClick={() => printProduction(`Production — ${formatDay(day)}`, production)}
-            disabled={production.length === 0}
-          >
-            <Printer className="size-4" /> Imprimer
-          </Button>
-        </div>
+      <PageHeader
+        title="Tableau de bord"
+        description={
+          day === today ? (
+            <>Précommandes du jour, {formatDay(day).toLowerCase()}</>
+          ) : (
+            <>Précommandes du {formatDay(day).toLowerCase()}</>
+          )
+        }
+        actions={
+          <>
+            <div className="flex h-9 items-center rounded-lg border border-border bg-card shadow-sm">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-full rounded-r-none"
+                aria-label="Jour précédent"
+                onClick={() => setDay(addDays(day, -1))}
+              >
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-full rounded-none border-x border-border px-3 font-medium"
+                disabled={day === today}
+                onClick={() => setDay(today)}
+              >
+                Aujourd'hui
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-full rounded-l-none"
+                aria-label="Jour suivant"
+                onClick={() => setDay(addDays(day, 1))}
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => printProduction(`Précommandes — ${formatDay(day)}`, preorderList)}
+              disabled={preorderList.length === 0}
+            >
+              <Printer /> Imprimer les précommandes
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Kpi
+          icon={ShoppingBag}
+          label="Précommandes"
+          value={ordersOfDay.length}
+          hint={
+            toConfirmOfDay > 0 ? (
+              <span className="text-amber-700">{toConfirmOfDay} à confirmer</span>
+            ) : ordersOfDay.length > 0 ? (
+              "Toutes confirmées"
+            ) : (
+              "Aucune pour ce jour"
+            )
+          }
+        />
+        <Kpi
+          icon={Gauge}
+          label="Portions réservées"
+          value={planned > 0 ? `${reserved} / ${planned}` : reserved}
+          hint={planned > 0 ? `${planned - reserved} portions encore libres` : "Aucun plat au menu"}
+        />
+        <Kpi
+          icon={TrendingUp}
+          label="Plats à renforcer"
+          value={toReinforce.length}
+          tone={toReinforce.length > 0 ? "warning" : undefined}
+          hint={
+            toReinforce.length > 0 ? (
+              <span className="text-amber-700">Presque épuisés : prévoir plus</span>
+            ) : (
+              "Les quantités prévues suffisent"
+            )
+          }
+        />
+        <Kpi
+          icon={Wallet}
+          label="Chiffre du jour"
+          value={formatPrice(revenue)}
+          hint={
+            revenue === 0 ? (
+              "Aucune vente"
+            ) : revenue === cashed ? (
+              <span className="text-emerald-700">Entièrement encaissé</span>
+            ) : (
+              <>
+                <span className="text-emerald-700">{formatPrice(cashed)} encaissés</span>,{" "}
+                <span className="text-amber-700">{formatPrice(revenue - cashed)} à encaisser</span>
+              </>
+            )
+          }
+        />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Commandes du jour" value={String(ordersOfDay.length)} />
-        <Stat label="Repas à préparer" value={String(meals)} />
-        <Stat label="Jus à préparer" value={String(juices)} />
-        <Stat label="Chiffre d'affaires" value={formatPrice(revenue)} />
-      </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel
+          className="lg:col-span-2"
+          title="Plats du jour"
+          subtitle="Quantité prévue par la cuisine et part déjà précommandée"
+          footer={<PanelLink to="/admin/weeks">Ajouter des portions dans les menus</PanelLink>}
+        >
+          {dishes.length === 0 ? (
+            <EmptyState title="Aucun plat au menu ce jour-là">
+              Composez le menu de ce jour dans la page Menus pour suivre ses précommandes.
+            </EmptyState>
+          ) : (
+            <ul className="divide-y divide-border">
+              {dishes.map((dish) => (
+                <DishRow key={dish.day_product_id} dish={dish} />
+              ))}
+            </ul>
+          )}
+          {juices.length > 0 && (
+            <div className="border-t border-border bg-muted/40 px-5 py-3 text-sm">
+              <span className="font-medium">Jus précommandés : </span>
+              <span className="text-muted-foreground">
+                {juices.map(([name, quantity]) => `${name} (${quantity})`).join(", ")}
+              </span>
+            </div>
+          )}
+        </Panel>
 
-      <section className="surface-card p-5">
-        <h2 className="font-display text-lg font-bold text-primary">
-          Liste de production — {formatDay(day)}
-        </h2>
-        {production.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Aucune commande pour ce jour.</p>
-        ) : (
-          <table className="mt-4 w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="py-2">Produit</th>
-                <th className="py-2">Catégorie</th>
-                <th className="py-2 text-right">Quantité</th>
-              </tr>
-            </thead>
+        <Panel
+          title="À confirmer"
+          count={toConfirm.length}
+          footer={<PanelLink to="/admin/orders">Voir toutes les commandes</PanelLink>}
+        >
+          {toConfirm.length === 0 ? (
+            <p className="px-5 py-8 text-center text-sm text-muted-foreground">
+              Toutes les commandes ont été confirmées.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {toConfirm.slice(0, 6).map((order) => (
+                <li key={order.id} className="flex items-center gap-3 px-5 py-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                    {order.first_name.slice(0, 1).toUpperCase()}
+                    {order.last_name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">
+                      {order.first_name} {order.last_name}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">#{order.reference}</span>
+                  </span>
+                  <span className="shrink-0 text-sm font-medium tabular-nums">
+                    {formatPrice(order.total)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel
+          className="lg:col-span-2"
+          title="Précommandes sur 7 jours"
+          subtitle={`${chartTotal} précommande${chartTotal > 1 ? "s" : ""}, par jour de livraison. Cliquez sur une barre pour voir ce jour.`}
+        >
+          <div className="h-56 px-1 pb-4 pt-2 sm:h-64 sm:px-2" aria-hidden>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chart} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
+                <CartesianGrid vertical={false} stroke={GRID} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: MUTED, fontSize: 12 }}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tickLine={false}
+                  axisLine={false}
+                  width={40}
+                  tick={{ fill: MUTED, fontSize: 12 }}
+                />
+                <Tooltip
+                  cursor={{ fill: "#f1f3f5" }}
+                  content={({ active, payload }) => {
+                    const point = payload?.[0]?.payload as (typeof chart)[number] | undefined;
+                    if (!active || !point) return null;
+                    return (
+                      <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-md">
+                        <p className="font-medium">{formatDay(point.date)}</p>
+                        <p className="mt-0.5 text-muted-foreground">
+                          <span className="font-semibold tabular-nums text-foreground">
+                            {point.orders}
+                          </span>{" "}
+                          précommande{point.orders > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
+                <Bar
+                  dataKey="orders"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={36}
+                  cursor="pointer"
+                  onClick={(data: { payload?: { date: string } }) =>
+                    data.payload && setDay(data.payload.date)
+                  }
+                >
+                  {chart.map((point) => (
+                    <Cell
+                      key={point.date}
+                      fill={point.date === day ? BRAND : BRAND_CHART}
+                      fillOpacity={point.date === day ? 1 : 0.6}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <table className="sr-only">
+            <caption>Précommandes par jour de livraison</caption>
             <tbody>
-              {production.map((row) => (
-                <tr key={row.name} className="border-b border-border/60">
-                  <td className="py-2 font-medium">{row.name}</td>
-                  <td className="py-2 capitalize text-muted-foreground">{row.category}</td>
-                  <td className="py-2 text-right font-semibold">{row.quantity}</td>
+              {chart.map((point) => (
+                <tr key={point.date}>
+                  <th scope="row">{formatDay(point.date)}</th>
+                  <td>{point.orders}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </section>
+        </Panel>
 
-      <section className="surface-card p-5">
-        <h2 className="font-display text-lg font-bold text-primary">Stocks faibles</h2>
-        {lowStock.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Tous les stocks sont confortables.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {lowStock.map((m) => (
-              <li key={m.day_product_id} className="flex justify-between gap-3">
-                <span>
-                  {m.name} <span className="text-muted-foreground">— {formatDay(m.day_date)}</span>
-                </span>
-                <span className="font-semibold text-destructive">
-                  {m.stock_left} restant{m.stock_left > 1 ? "s" : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <Panel
+          title="Jours suivants à surveiller"
+          subtitle="Plats presque épuisés les prochains jours"
+          footer={<PanelLink to="/admin/weeks">Ajuster dans les menus</PanelLink>}
+        >
+          {upcomingAlerts.length === 0 ? (
+            <p className="px-5 py-8 text-center text-sm text-muted-foreground">
+              Rien à signaler pour les prochains jours.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {upcomingAlerts.slice(0, 6).map((m) => (
+                <li key={m.day_product_id} className="flex items-center gap-3 px-5 py-3">
+                  <ProductThumb name={m.name} photoUrl={m.photo_url} className="size-9" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{m.name}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {formatDay(m.day_date)}
+                    </span>
+                  </span>
+                  <LevelBadge dish={m} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function DishRow({ dish }: { dish: MenuRow }) {
+  const level = dishLevel(dish);
+  const ratio = dish.stock_initial > 0 ? Math.min(1, dish.stock_reserved / dish.stock_initial) : 0;
   return (
-    <div className="surface-card p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-2xl font-bold text-primary">{value}</p>
+    <li className="flex items-center gap-3 px-5 py-3">
+      <ProductThumb name={dish.name} photoUrl={dish.photo_url} className="size-10" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-3">
+          <p className="truncate text-sm font-medium">{dish.name}</p>
+          <LevelBadge dish={dish} />
+        </div>
+        <div className="mt-2 flex items-center gap-3">
+          <span
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+            role="meter"
+            aria-label={`${dish.name} : part précommandée`}
+            aria-valuemin={0}
+            aria-valuemax={dish.stock_initial}
+            aria-valuenow={dish.stock_reserved}
+          >
+            <span
+              className={cn(
+                "block h-full rounded-full",
+                level === "ok" ? "bg-[var(--brand-chart)]" : "bg-amber-500",
+                level === "epuise" && "bg-rose-500",
+              )}
+              style={{ width: `${ratio * 100}%` }}
+            />
+          </span>
+          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+            <span className="font-semibold text-foreground">{dish.stock_reserved}</span> réservées
+            sur {dish.stock_initial}
+          </span>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function LevelBadge({ dish }: { dish: MenuRow }) {
+  const level = dishLevel(dish);
+  if (level === "epuise") {
+    return (
+      <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">
+        Épuisé, à renforcer
+      </span>
+    );
+  }
+  if (level === "renforcer") {
+    return (
+      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium tabular-nums text-amber-700">
+        {dish.stock_left} restante{dish.stock_left > 1 ? "s" : ""}, à renforcer
+      </span>
+    );
+  }
+  return (
+    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+      {dish.stock_left} libres
+    </span>
+  );
+}
+
+function Kpi({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  icon: typeof ShoppingBag;
+  label: string;
+  value: number | string;
+  hint?: ReactNode;
+  tone?: "warning" | undefined;
+}) {
+  return (
+    <div
+      className={cn(
+        "min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5",
+        tone === "warning" && "border-amber-300",
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="truncate text-sm font-medium text-muted-foreground">{label}</p>
+        <span className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-tint)] text-primary sm:flex">
+          <Icon className="size-[18px]" />
+        </span>
+      </div>
+      <p className="mt-2 text-xl font-semibold leading-tight tracking-tight tabular-nums sm:mt-3 sm:text-[28px] sm:leading-none">
+        {value}
+      </p>
+      {hint && <p className="mt-2 text-xs text-muted-foreground">{hint}</p>}
     </div>
+  );
+}
+
+function Panel({
+  title,
+  subtitle,
+  count,
+  footer,
+  className,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  count?: number | string | undefined;
+  footer?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className={cn(
+        "flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm",
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold">{title}</h2>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        {count !== undefined && (
+          <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+            {count}
+          </span>
+        )}
+      </div>
+      <div className="flex-1">{children}</div>
+      {footer && <div className="border-t border-border">{footer}</div>}
+    </section>
+  );
+}
+
+function PanelLink({
+  to,
+  children,
+}: {
+  to: "/admin/orders" | "/admin/weeks";
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      to={to}
+      className="block px-5 py-3 text-sm font-medium text-primary hover:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+    >
+      {children}
+    </Link>
   );
 }

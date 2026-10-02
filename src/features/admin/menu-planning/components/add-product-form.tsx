@@ -29,7 +29,7 @@ export function AddProductForm({
 }) {
   // Les jus ont leur propre catalogue (formats et stock dans « Produits ») : seuls les plats se planifient.
   const available = products.filter((p) => p.active && p.category === "plat");
-  const [mode, setMode] = useState<"new" | "existing">("new");
+  const [mode, setMode] = useState<"new" | "existing">(available.length > 0 ? "existing" : "new");
   const [productId, setProductId] = useState("");
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(20);
@@ -41,6 +41,7 @@ export function AddProductForm({
   const [creating, setCreating] = useState(false);
 
   const selected = available.find((p) => p.id === productId) ?? null;
+  const amountsValid = Number.isInteger(price) && price > 0 && Number.isInteger(stock) && stock > 0;
 
   function reset() {
     setProductId("");
@@ -81,26 +82,31 @@ export function AddProductForm({
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-border p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-display text-base font-bold">Ajouter un produit</h3>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant={mode === "new" ? "default" : "secondary"}
-            onClick={() => setMode("new")}
-          >
-            Nouveau plat
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={mode === "existing" ? "default" : "secondary"}
-            onClick={() => setMode("existing")}
-          >
-            Depuis le catalogue
-          </Button>
+    <section className="space-y-4 rounded-lg border border-border p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="font-semibold">Ajouter un plat</h3>
+        <div role="group" aria-label="Origine du plat" className="flex rounded-lg bg-muted p-1">
+          {(
+            [
+              ["existing", "Du catalogue"],
+              ["new", "Nouveau plat"],
+            ] as const
+          ).map(([value, text]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={mode === value}
+              onClick={() => setMode(value)}
+              className={cn(
+                "h-8 rounded-md px-3 text-sm font-medium transition-colors",
+                mode === value
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {text}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -191,7 +197,7 @@ export function AddProductForm({
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{product.name}</span>
                     <span className="block text-xs text-muted-foreground">
-                      {product.category} · {formatPrice(product.base_price)}
+                      {formatPrice(product.base_price)}
                     </span>
                   </span>
                 </button>
@@ -218,7 +224,7 @@ export function AddProductForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="dp-stock">Stock initial</Label>
+          <Label htmlFor="dp-stock">Portions prévues</Label>
           <Input
             id="dp-stock"
             type="number"
@@ -229,10 +235,16 @@ export function AddProductForm({
         </div>
       </div>
 
+      {!amountsValid && (
+        <p className="text-xs text-destructive">
+          Indiquez un prix et un nombre de portions supérieurs à 0.
+        </p>
+      )}
+
       {mode === "new" ? (
         <Button
           className="w-full"
-          disabled={!name.trim() || creating || pending}
+          disabled={!name.trim() || !amountsValid || creating || pending}
           onClick={createAndAdd}
         >
           <Plus className="size-4" /> {creating ? "Ajout…" : "Ajouter au menu"}
@@ -240,7 +252,7 @@ export function AddProductForm({
       ) : (
         <Button
           className="w-full"
-          disabled={!productId || pending}
+          disabled={!productId || !amountsValid || pending}
           onClick={() => {
             onAdd({ day_id: day.id, product_id: productId, price, stock_initial: stock });
             reset();
@@ -249,6 +261,6 @@ export function AddProductForm({
           <Plus className="size-4" /> Ajouter au menu
         </Button>
       )}
-    </div>
+    </section>
   );
 }

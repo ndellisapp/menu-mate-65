@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,15 @@ import {
   type ProductVariant,
 } from "@/features/admin/products/api";
 import { JUICE_SIZES, type JuiceSize } from "@/features/juices/api";
-import { formatPrice } from "@/lib/format";
+import { CATEGORY_LABELS, formatPrice } from "@/lib/format";
+import {
+  ConfirmDialog,
+  EmptyState,
+  PageHeader,
+  ProductThumb,
+  TonePill,
+} from "@/features/admin/components/admin-ui";
+import { cn } from "@/lib/utils";
 import { uploadPhoto } from "@/features/admin/products/upload-photo";
 
 type VariantDraft = { price: number; stock: number; is_active: boolean };
@@ -44,6 +52,12 @@ const EMPTY_VARIANTS: Record<JuiceSize, VariantDraft> = {
   grand: { price: 0, stock: 0, is_active: true },
 };
 
+const CATEGORY_FILTERS = [
+  { value: "all", label: "Tout" },
+  { value: "plat", label: "Plats" },
+  { value: "jus", label: "Jus" },
+];
+
 const EMPTY: Draft = {
   name: "",
   description: "",
@@ -60,6 +74,9 @@ export function ProductsPage() {
   const { data: variants = [] } = useQuery(productVariantsQuery());
   const [draft, setDraft] = useState<Draft | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [toDelete, setToDelete] = useState<Product | null>(null);
 
   async function pickPhoto(file: File) {
     if (!draft) return;
@@ -127,6 +144,21 @@ export function ProductsPage() {
       toast.error("Impossible de supprimer ce produit (il est peut-être utilisé dans un menu)."),
   });
 
+  const toggleActive = useMutation({
+    mutationFn: async (input: { id: string; active: boolean }) => {
+      const { error } = await db
+        .from("products")
+        .update({ active: input.active })
+        .eq("id", input.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_, input) => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success(input.active ? "Produit remis en vente" : "Produit masqué");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   function variantsOf(productId: string) {
     return variants.filter((v) => v.product_id === productId);
   }
@@ -149,96 +181,162 @@ export function ProductsPage() {
     });
   }
 
+  const filtered = products.filter((product) => {
+    if (category !== "all" && product.category !== category) return false;
+    const term = search.trim().toLowerCase();
+    return !term || product.name.toLowerCase().includes(term);
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Catalogue produits</h1>
-          <p className="text-sm text-muted-foreground">Plats et jus réutilisables dans les menus</p>
+      <PageHeader
+        title="Catalogue"
+        description="Les plats et jus que vous pouvez mettre au menu."
+        actions={
+          <Button onClick={() => setDraft({ ...EMPTY })}>
+            <Plus /> Ajouter un produit
+          </Button>
+        }
+      />
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            aria-label="Rechercher un produit"
+            placeholder="Rechercher un produit"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-10 bg-card pl-9"
+          />
         </div>
-        <Button onClick={() => setDraft({ ...EMPTY })}>
-          <Plus className="size-4" /> Nouveau produit
-        </Button>
+        <div
+          role="group"
+          aria-label="Filtrer par catégorie"
+          className="flex rounded-lg border border-border bg-card p-1"
+        >
+          {CATEGORY_FILTERS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={category === option.value}
+              onClick={() => setCategory(option.value)}
+              className={cn(
+                "h-8 rounded-md px-3 text-sm font-medium transition-colors",
+                category === option.value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="surface-card overflow-x-auto p-2">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="p-3">Photo</th>
-              <th className="p-3">Produit</th>
-              <th className="p-3">Catégorie</th>
-              <th className="p-3 text-right">Prix / stock</th>
-              <th className="p-3">Actif</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id} className="border-b border-border/60">
-                <td className="p-3">
-                  {product.photo_url ? (
-                    <img
-                      src={product.photo_url}
-                      alt={product.name}
-                      className="size-12 rounded-md object-cover"
-                    />
-                  ) : (
-                    <span className="flex size-12 items-center justify-center rounded-md bg-secondary text-sm font-bold">
-                      {product.name.slice(0, 1)}
-                    </span>
-                  )}
-                </td>
-                <td className="p-3">
-                  <p className="font-medium">{product.name}</p>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        {filtered.length === 0 ? (
+          <EmptyState
+            title={products.length === 0 ? "Votre catalogue est vide" : "Aucun produit trouvé"}
+            action={
+              products.length === 0 ? (
+                <Button onClick={() => setDraft({ ...EMPTY })}>
+                  <Plus /> Ajouter un produit
+                </Button>
+              ) : undefined
+            }
+          >
+            {products.length === 0
+              ? "Ajoutez vos plats et vos jus pour pouvoir composer les menus de la semaine."
+              : "Essayez un autre nom ou une autre catégorie."}
+          </EmptyState>
+        ) : (
+          <ul className="divide-y divide-border">
+            {filtered.map((product) => (
+              <li
+                key={product.id}
+                className={cn(
+                  "flex flex-wrap items-center gap-4 px-4 py-3 sm:flex-nowrap",
+                  !product.active && "bg-muted/40",
+                )}
+              >
+                <ProductThumb
+                  name={product.name}
+                  photoUrl={product.photo_url}
+                  className={cn("size-14", !product.active && "opacity-50 grayscale")}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-2 font-semibold">
+                    <span className="truncate">{product.name}</span>
+                    <TonePill>{CATEGORY_LABELS[product.category] ?? product.category}</TonePill>
+                  </p>
                   {product.description && (
-                    <p className="text-xs text-muted-foreground">{product.description}</p>
+                    <p className="line-clamp-1 text-sm text-muted-foreground">
+                      {product.description}
+                    </p>
                   )}
-                </td>
-                <td className="p-3 capitalize">{product.category}</td>
-                <td className="p-3 text-right">
+                </div>
+                <div className="text-sm tabular-nums sm:w-44 sm:text-right">
                   {product.category === "jus" ? (
                     <JuiceVariantsSummary variants={variantsOf(product.id)} />
                   ) : (
-                    formatPrice(product.base_price)
+                    <span className="font-semibold">{formatPrice(product.base_price)}</span>
                   )}
-                </td>
-                <td className="p-3">{product.active ? "Oui" : "Non"}</td>
-                <td className="p-3 text-right">
+                </div>
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Switch
+                    checked={product.active}
+                    aria-label={`${product.name} en vente`}
+                    onCheckedChange={(checked) =>
+                      toggleActive.mutate({ id: product.id, active: checked })
+                    }
+                  />
+                  <span className="w-16">{product.active ? "En vente" : "Masqué"}</span>
+                </label>
+                <div className="flex">
                   <Button
                     size="icon"
                     variant="ghost"
-                    aria-label="Modifier"
+                    aria-label={`Modifier ${product.name}`}
                     onClick={() => edit(product)}
                   >
-                    <Pencil className="size-4" />
+                    <Pencil />
                   </Button>
                   <Button
                     size="icon"
                     variant="ghost"
-                    aria-label="Supprimer"
-                    onClick={() => remove.mutate(product.id)}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={`Supprimer ${product.name}`}
+                    onClick={() => setToDelete(product)}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 />
                   </Button>
-                </td>
-              </tr>
+                </div>
+              </li>
             ))}
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                  Aucun produit pour le moment.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          </ul>
+        )}
       </div>
 
+      <ConfirmDialog
+        open={toDelete !== null}
+        title={`Supprimer « ${toDelete?.name ?? ""} » ?`}
+        description="Le produit disparaît du catalogue. S'il figure déjà dans un menu, masquez-le plutôt avec l'interrupteur « En vente »."
+        confirmLabel="Supprimer"
+        onCancel={() => setToDelete(null)}
+        onConfirm={() => {
+          if (toDelete) remove.mutate(toDelete.id);
+          setToDelete(null);
+        }}
+      />
+
       <Dialog open={draft !== null} onOpenChange={(open) => !open && setDraft(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{draft?.id ? "Modifier le produit" : "Nouveau produit"}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">
+              {draft?.id ? "Modifier le produit" : "Nouveau produit"}
+            </DialogTitle>
           </DialogHeader>
           {draft && (
             <div className="space-y-4">
@@ -261,34 +359,51 @@ export function ProductsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="photo-file">Photo du produit</Label>
-                <Input
-                  id="photo-file"
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  onChange={(e) => {
-                    const picked = e.target.files?.[0];
-                    if (picked) void pickPhoto(picked);
-                  }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {uploading ? "Import en cours…" : "ou collez un lien d'image ci-dessous"}
-                </p>
+                <Label htmlFor="photo-file">Photo</Label>
+                <label
+                  htmlFor="photo-file"
+                  className={cn(
+                    "relative flex h-36 cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/40 text-sm text-muted-foreground transition-colors focus-within:outline-2 focus-within:outline-primary hover:border-primary hover:text-foreground",
+                    uploading && "pointer-events-none opacity-60",
+                  )}
+                >
+                  {draft.photo_url.trim() ? (
+                    <>
+                      <img
+                        src={draft.photo_url.trim()}
+                        alt="Aperçu du produit"
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                      <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white">
+                        {uploading ? "Import en cours…" : "Changer la photo"}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="flex flex-col items-center gap-1">
+                      <ImagePlus className="size-6" />
+                      {uploading ? "Import en cours…" : "Choisir une photo"}
+                    </span>
+                  )}
+                  <input
+                    id="photo-file"
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const picked = e.target.files?.[0];
+                      if (picked) void pickPhoto(picked);
+                    }}
+                  />
+                </label>
                 <Input
                   id="photo"
+                  aria-label="Ou lien vers une image"
                   maxLength={500}
-                  placeholder="https://…/photo.jpg"
+                  placeholder="Ou collez le lien d'une image : https://…"
                   value={draft.photo_url}
                   onChange={(e) => setDraft({ ...draft, photo_url: e.target.value })}
                 />
-                {draft.photo_url.trim() && (
-                  <img
-                    src={draft.photo_url.trim()}
-                    alt="Aperçu du produit"
-                    className="h-32 w-full rounded-md object-cover"
-                  />
-                )}
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -375,19 +490,24 @@ export function ProductsPage() {
                   checked={draft.active}
                   onCheckedChange={(checked) => setDraft({ ...draft, active: checked })}
                 />
-                Produit actif
+                <span>
+                  En vente
+                  <span className="block text-xs text-muted-foreground">
+                    Décochez pour masquer le produit sans le supprimer.
+                  </span>
+                </span>
               </label>
             </div>
           )}
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setDraft(null)}>
+            <Button variant="outline" onClick={() => setDraft(null)}>
               Annuler
             </Button>
             <Button
               disabled={!draft?.name.trim() || save.isPending}
               onClick={() => draft && save.mutate(draft)}
             >
-              Enregistrer
+              {save.isPending ? "Enregistrement…" : "Enregistrer"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -401,7 +521,7 @@ function JuiceVariantsSummary({ variants }: { variants: ProductVariant[] }) {
     return <span className="text-muted-foreground">Formats à définir</span>;
   }
   return (
-    <ul className="space-y-0.5 text-xs">
+    <ul className="space-y-0.5 text-xs sm:text-right">
       {JUICE_SIZES.map(({ size, volume }) => {
         const v = variants.find((x) => x.size === size);
         if (!v) return null;

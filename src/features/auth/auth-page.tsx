@@ -1,22 +1,29 @@
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
+import logo from "@/assets/logo-ndellis.png";
 
 export function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // La création de compte ne sert qu'à créer le premier gérant : on la masque ensuite.
+  const [allowSignup, setAllowSignup] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/admin" });
+    });
+    db.rpc("admin_exists").then(({ data, error }: { data: boolean | null; error: unknown }) => {
+      // Sans la migration `admin_exists`, on garde l'ancien comportement (onglet visible).
+      setAllowSignup(error ? true : data === false);
     });
   }, [navigate]);
 
@@ -65,27 +72,33 @@ export function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-cream px-4 py-12">
-      <div className="surface-card w-full max-w-md p-6 sm:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <UtensilsCrossed className="size-5" />
-          </span>
-          <div>
-            <h1 className="font-display text-xl font-bold">Espace gérant</h1>
-            <p className="text-sm text-muted-foreground">Accès au back-office</p>
-          </div>
+    <div className="admin-shell flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <img
+            src={logo}
+            alt="Le Ndelli's NDS Traiteur"
+            width={256}
+            height={256}
+            className="size-20 rounded-full bg-white object-cover"
+          />
+          <h1 className="mt-4 text-2xl font-semibold">Espace gérant</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Commandes, menus et production de la cuisine.
+          </p>
         </div>
 
         <Tabs defaultValue="signin">
-          <TabsList className="w-full">
-            <TabsTrigger value="signin" className="flex-1">
-              Connexion
-            </TabsTrigger>
-            <TabsTrigger value="signup" className="flex-1">
-              Créer un compte
-            </TabsTrigger>
-          </TabsList>
+          {allowSignup && (
+            <TabsList className="w-full">
+              <TabsTrigger value="signin" className="flex-1">
+                Connexion
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="flex-1">
+                Créer un compte
+              </TabsTrigger>
+            </TabsList>
+          )}
 
           <TabsContent value="signin">
             <form className="space-y-4 pt-4" onSubmit={signIn}>
@@ -110,7 +123,7 @@ export function AuthPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                Se connecter
+                {loading ? "Connexion…" : "Se connecter"}
               </Button>
               <button
                 type="button"
@@ -122,37 +135,39 @@ export function AuthPage() {
             </form>
           </TabsContent>
 
-          <TabsContent value="signup">
-            <form className="space-y-4 pt-4" onSubmit={signUp}>
-              <div className="space-y-2">
-                <Label htmlFor="email-up">Email</Label>
-                <Input
-                  id="email-up"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password-up">Mot de passe</Label>
-                <Input
-                  id="password-up"
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Le premier compte créé devient automatiquement administrateur.
-              </p>
-              <Button type="submit" className="w-full" disabled={loading}>
-                Créer mon compte
-              </Button>
-            </form>
-          </TabsContent>
+          {allowSignup && (
+            <TabsContent value="signup">
+              <form className="space-y-4 pt-4" onSubmit={signUp}>
+                <div className="space-y-2">
+                  <Label htmlFor="email-up">Email</Label>
+                  <Input
+                    id="email-up"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-up">Mot de passe</Label>
+                  <Input
+                    id="password-up"
+                    type="password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Le premier compte créé devient automatiquement administrateur.
+                </p>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  Créer mon compte
+                </Button>
+              </form>
+            </TabsContent>
+          )}
         </Tabs>
 
         <Link

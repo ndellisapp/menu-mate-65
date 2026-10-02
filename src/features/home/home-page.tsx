@@ -7,6 +7,7 @@ import { JuiceSection } from "@/features/juices/components/juice-section";
 import { TestimonialsSection } from "@/features/home/components/testimonials-section";
 import { GalleryMarquee } from "@/features/home/components/gallery-marquee";
 import { CulinaryJourneySection } from "@/features/home/components/culinary-journey-section";
+import { BestSellerSection } from "@/features/home/components/best-seller-section";
 import { ChefSection } from "@/features/home/components/chef-section";
 import { CateringEventsSection } from "@/features/home/components/catering-section";
 import { ChefHatDivider } from "@/features/home/components/chef-hat-divider";
@@ -28,6 +29,8 @@ export function HomePage() {
       <GalleryMarquee />
 
       <CulinaryJourneySection />
+
+      <BestSellerSection />
 
       <FoodBackdrop>
         <ChefSection />

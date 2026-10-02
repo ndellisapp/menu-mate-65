@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as ConfirmationRouteImport } from './routes/confirmation'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
@@ -43,6 +44,11 @@ const CommandeRoute = CommandeRouteImport.update({
 const ConfirmationRoute = ConfirmationRouteImport.update({
   id: '/confirmation',
   path: '/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/commande': typeof CommandeRoute
   '/confirmation': typeof ConfirmationRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/weeks': typeof AdminWeeksRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/commande': typeof CommandeRoute
   '/confirmation': typeof ConfirmationRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/weeks': typeof AdminWeeksRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/commande': typeof CommandeRoute
   '/confirmation': typeof ConfirmationRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/weeks': typeof AdminWeeksRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/commande'
     | '/confirmation'
+    | '/reset-password'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/weeks'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/commande'
     | '/confirmation'
+    | '/reset-password'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/weeks'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/commande'
     | '/confirmation'
+    | '/reset-password'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/weeks'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CommandeRoute: typeof CommandeRoute
   ConfirmationRoute: typeof ConfirmationRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicPaydunyaIpnRoute: typeof ApiPublicPaydunyaIpnRoute
 }
 
@@ -189,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/confirmation'
       fullPath: '/confirmation'
       preLoaderRoute: typeof ConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -251,6 +271,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CommandeRoute: CommandeRoute,
   ConfirmationRoute: ConfirmationRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicPaydunyaIpnRoute: ApiPublicPaydunyaIpnRoute,
 }
 export const routeTree = rootRouteImport
