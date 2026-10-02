@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/public/paydunya-ipn")({
         if (!hash || hash !== expected || !token) {
           return new Response("Invalid", { status: 401 });
         }
-        const { syncPayment } = await import("@/lib/paydunya.server");
+        const { syncPayment } = await import("@/features/payment/paydunya.server");
         // Re-confirm directly with PayDunya rather than trusting the payload
         await syncPayment(token);
         return new Response("ok");
