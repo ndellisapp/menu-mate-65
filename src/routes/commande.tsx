@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -27,6 +27,8 @@ export const Route = createFileRoute("/commande")({
           "Vérifiez votre panier, renseignez vos coordonnées de livraison et validez votre précommande en ligne.",
       },
       { property: "og:title", content: "Ma précommande — Traiteur" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content: "Récapitulatif du panier et validation de la précommande.",
@@ -67,6 +69,12 @@ function CheckoutPage() {
     instructions: "",
   });
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("paiement") === "annule") {
+      toast.info("Paiement annulé. Votre panier est conservé pour réessayer.");
+    }
+  }, []);
+
   const today = todayISO();
   const isPreorder = useMemo(
     () => items.some((item) => item.day_date > today),
@@ -90,18 +98,28 @@ function CheckoutPage() {
   const pay = useServerFn(startPayment);
   const mutation = useMutation({
     mutationFn: async (payload: Parameters<typeof placeOrder>[0]) => {
-      const result = await placeOrder(payload);
+      const fingerprint = JSON.stringify(payload);
+      const pendingRaw = window.sessionStorage.getItem("traiteur.pending_payment");
+      let pending: { fingerprint: string; orderId: string; reference: string; total: number; order_type: string; deposit_required: number } | null = null;
+      try { pending = pendingRaw ? JSON.parse(pendingRaw) : null; } catch { /* ignore expired data */ }
+      const result = pending?.fingerprint === fingerprint
+        ? null
+        : await placeOrder(payload);
+      const orderId = result?.order_id ?? pending?.orderId;
+      if (!orderId) throw new Error("Commande introuvable. Réessayez.");
+      if (result) window.sessionStorage.setItem("traiteur.pending_payment", JSON.stringify({ fingerprint, orderId, reference: result.reference, total: result.total, order_type: result.order_type, deposit_required: result.deposit_required }));
+      const { url } = await pay({ data: { orderId } });
+      if (!url.startsWith("https://app.paydunya.com/")) throw new Error("Lien de paiement invalide. Réessayez.");
       const payload2 = {
-        reference: result.reference,
-        total: result.total,
-        order_type: result.order_type,
-        deposit_required: result.deposit_required,
+        reference: result?.reference ?? pending?.reference,
+        total: result?.total ?? pending?.total ?? total,
+        order_type: result?.order_type ?? pending?.order_type ?? (isPreorder ? "precommande" : "immediate"),
+        deposit_required: result?.deposit_required ?? pending?.deposit_required ?? (isPreorder ? DEPOSIT_AMOUNT : 0),
         customer: form,
         items: items.map((i) => ({ ...i })),
       };
       window.sessionStorage.setItem("traiteur.last_order", JSON.stringify(payload2));
       clear();
-      const { url } = await pay({ data: { orderId: result.order_id } });
       return url;
     },
     onSuccess: (url) => {

@@ -18,6 +18,8 @@ export const Route = createFileRoute("/confirmation")({
       },
       { property: "og:title", content: "Précommande confirmée — Traiteur" },
       { property: "og:description", content: "Référence et détail de votre précommande." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -55,7 +57,10 @@ function ConfirmationPage() {
     if (token) {
       setPayStatus("checking");
       check({ data: { token } })
-        .then((r) => setPayStatus(r.status))
+        .then((r) => {
+          setPayStatus(r.status);
+          if (r.status === "completed") window.sessionStorage.removeItem("traiteur.pending_payment");
+        })
         .catch(() => setPayStatus("unknown"));
     }
   }, [check]);

@@ -19,6 +19,8 @@ export const Route = createFileRoute("/auth")({
       },
       { property: "og:title", content: "Espace gérant — Connexion" },
       { property: "og:description", content: "Accès réservé au gérant du service traiteur." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
     ],
   }),
