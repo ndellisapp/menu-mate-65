@@ -18,6 +18,8 @@ export const Route = createFileRoute("/confirmation")({
       },
       { property: "og:title", content: "Précommande confirmée — Traiteur" },
       { property: "og:description", content: "Référence et détail de votre précommande." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
     ],
   }),

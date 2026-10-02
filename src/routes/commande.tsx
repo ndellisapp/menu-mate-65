@@ -27,6 +27,8 @@ export const Route = createFileRoute("/commande")({
           "Vérifiez votre panier, renseignez vos coordonnées de livraison et validez votre précommande en ligne.",
       },
       { property: "og:title", content: "Ma précommande — Traiteur" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content: "Récapitulatif du panier et validation de la précommande.",

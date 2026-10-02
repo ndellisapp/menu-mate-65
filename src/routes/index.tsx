@@ -186,7 +186,7 @@ function MenuPage() {
                   </Button>
                 </div>
               </div>
-              <Tabs value={currentDay ?? undefined} onValueChange={setActiveDay}>
+              <Tabs value={currentDay ?? ""} onValueChange={setActiveDay}>
               <TabsList ref={scrollRef} aria-label="Jours du menu" className="flex h-auto w-full justify-start gap-0 overflow-x-auto rounded-none border-b border-border bg-transparent p-0 scrollbar-hide scroll-smooth">
                 {days.map((day) => {
                   const isToday = day === todayISO();
