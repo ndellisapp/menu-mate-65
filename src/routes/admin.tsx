@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarRange, LayoutDashboard, LogOut, Package, ShoppingBag } from "lucide-react";
+import { ArrowUpRight, CalendarRange, LayoutDashboard, LogOut, Package, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -91,34 +91,42 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
-      <header className="bg-sidebar text-sidebar-foreground shadow-warm">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4">
-          <span className="font-display text-xl font-bold text-sidebar-foreground">
-            Back<span className="text-accent">-office</span>
-          </span>
-          <nav className="flex flex-wrap items-center gap-1">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground shadow-warm">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:gap-8">
+          <div className="flex items-center justify-between gap-4">
+            <Link to="/admin" className="flex shrink-0 items-center gap-3" aria-label="Ndelli's — Tableau de bord">
+              <span className="flex size-10 items-center justify-center rounded-md bg-accent text-accent-foreground"><UtensilsCrossed className="size-5" /></span>
+              <span className="leading-tight"><span className="block font-display text-xl font-bold">Ndelli's<span className="text-accent">.</span></span><span className="block text-[11px] font-medium uppercase text-sidebar-foreground/65">Espace gérant</span></span>
+            </Link>
+            <div className="flex items-center gap-1 lg:hidden">
+              <Button asChild variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent" title="Voir le site"><Link to="/"><ArrowUpRight className="size-4" /></Link></Button>
+              <Button variant="ghost" size="icon" onClick={signOut} className="text-sidebar-foreground hover:bg-sidebar-accent" title="Déconnexion" aria-label="Déconnexion"><LogOut className="size-4" /></Button>
+            </div>
+          </div>
+          <nav aria-label="Navigation gérant" className="flex w-full min-w-0 gap-1 overflow-x-auto border-t border-sidebar-border pt-3 scrollbar-hide lg:w-auto lg:flex-1 lg:border-t-0 lg:pt-0">
             {NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 activeOptions={{ exact: item.exact }}
                 activeProps={{ className: "bg-accent text-accent-foreground hover:bg-accent" }}
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-accent"
+                activeProps={{ className: "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground" }}
               >
                 <item.icon className="size-4" />
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="hidden items-center gap-2 lg:flex">
             <Button
               asChild
               variant="ghost"
               size="sm"
               className="rounded-full text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
             >
-              <Link to="/">Voir le site</Link>
+              <Link to="/"><ArrowUpRight className="size-4" /> Voir le site</Link>
             </Button>
             <Button
               size="sm"
