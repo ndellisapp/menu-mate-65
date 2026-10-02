@@ -12,7 +12,12 @@ export const Route = createFileRoute("/admin")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
+      // Permet d'ajouter l'espace gérant à l'écran d'accueil (indispensable pour les notifications sur iPhone).
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Ndelli's Gérant" },
+      { name: "theme-color", content: "#ffffff" },
     ],
+    links: [{ rel: "manifest", href: "/admin.webmanifest" }],
   }),
   component: AdminLayout,
 });

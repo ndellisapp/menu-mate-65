@@ -57,8 +57,8 @@ export function JuiceSection() {
           Nos jus
         </h2>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          Bissap, bouye, gingembre… pressés et préparés chaque jour. Disponibles en petit format (25
-          cl) ou en grand format (1,5 L), à ajouter à votre commande avec vos plats.
+          Bissap, bouye, gingembre… pressés et préparés chaque jour. Disponibles en petit format
+          (250 ml) ou en grand format (1,5 L), à ajouter à votre commande avec vos plats.
         </p>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

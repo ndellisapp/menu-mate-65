@@ -34,7 +34,7 @@ export function BestSellerSection() {
             width={450}
             height={600}
             loading="lazy"
-            className="absolute right-0 top-10 size-28 rounded-full border-[6px] border-background object-cover shadow-warm transition-transform duration-500 group-hover:-translate-y-2 group-hover:rotate-6 sm:size-36"
+            className="absolute -right-4 top-6 size-40 rounded-full border-[6px] border-background object-cover shadow-warm transition-transform duration-500 group-hover:-translate-y-2 group-hover:rotate-6 sm:size-52"
           />
           <img
             src={fonioViande}
@@ -42,7 +42,7 @@ export function BestSellerSection() {
             width={450}
             height={600}
             loading="lazy"
-            className="absolute bottom-0 left-0 aspect-square w-32 -rotate-6 rounded-3xl border-[6px] border-background object-cover shadow-warm transition-transform duration-500 group-hover:-translate-y-2 group-hover:rotate-0 sm:w-40"
+            className="absolute -bottom-4 -left-4 aspect-square w-44 -rotate-6 rounded-3xl border-[6px] border-background object-cover shadow-warm transition-transform duration-500 group-hover:-translate-y-2 group-hover:rotate-0 sm:w-56"
           />
           <span className="absolute bottom-6 right-4 rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-foreground shadow-warm">
             Le plus commandé

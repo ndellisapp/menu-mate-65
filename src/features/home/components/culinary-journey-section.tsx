@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import cuisinePoster from "@/assets/cheffe-cuisine-poster.jpg";
 import cuisineVideo from "@/assets/cheffe-cuisine.mp4";
 import cuisineVideoWebm from "@/assets/cheffe-cuisine.webm";
+import decoCrevette from "@/assets/deco-crevette.webp";
 import motifOndule from "@/assets/motif-ondule.webp";
 
 const CUISINES = [
@@ -11,6 +13,29 @@ const CUISINES = [
 ];
 
 export function CulinaryJourneySection() {
+  // La vidéo (1 Mo) n'est téléchargée que lorsque la section approche de l'écran.
+  const videoBoxRef = useRef<HTMLDivElement>(null);
+  const [showVideo, setShowVideo] = useState(false);
+
+  useEffect(() => {
+    const box = videoBoxRef.current;
+    if (!box || !("IntersectionObserver" in window)) {
+      setShowVideo(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShowVideo(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-sidebar text-sidebar-foreground">
       {/* motif ondulé ton sur ton */}
@@ -47,21 +72,38 @@ export function CulinaryJourneySection() {
             ))}
           </div>
         </div>
-        <div className="relative mx-auto w-full max-w-md">
+        <div ref={videoBoxRef} className="relative mx-auto w-full max-w-md">
           <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
-          <video
-            poster={cuisinePoster}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            aria-label="La cheffe Ndellis Signé en pleine préparation en cuisine"
-            className="relative aspect-[9/16] w-full rounded-2xl object-cover shadow-warm"
-          >
-            <source src={cuisineVideoWebm} type="video/webm" />
-            <source src={cuisineVideo} type="video/mp4" />
-          </video>
+          {/* crevette dessinée posée sur le bord droit de la vidéo */}
+          <img
+            src={decoCrevette}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            className="deco-float pointer-events-none absolute -right-14 bottom-16 z-10 w-36 select-none drop-shadow-[0_14px_22px_rgba(0,0,0,0.45)] sm:-right-20 sm:w-48"
+            style={{ "--deco-rotate": "-14deg" } as CSSProperties}
+          />
+          {showVideo ? (
+            <video
+              poster={cuisinePoster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="La cheffe Ndellis Signé en pleine préparation en cuisine"
+              className="relative aspect-[9/16] w-full rounded-2xl object-cover shadow-warm"
+            >
+              <source src={cuisineVideoWebm} type="video/webm" />
+              <source src={cuisineVideo} type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src={cuisinePoster}
+              alt="La cheffe Ndellis Signé en pleine préparation en cuisine"
+              className="relative aspect-[9/16] w-full rounded-2xl object-cover shadow-warm"
+            />
+          )}
         </div>
       </div>
     </section>

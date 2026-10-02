@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Fragment, useMemo, useState } from "react";
-import { ChevronDown, Download, FileSpreadsheet, Printer, Search, Tags } from "lucide-react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { useSearch } from "@tanstack/react-router";
+import {
+  ChevronDown,
+  Download,
+  FileSpreadsheet,
+  Printer,
+  Receipt,
+  Scissors,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +36,7 @@ import {
   PAYMENT_STATUSES,
   PAYMENT_STATUS_LABELS,
 } from "@/lib/format";
-import { printOrders, printStickers } from "@/features/admin/orders/print";
+import { printOrders, printTickets } from "@/features/admin/orders/print";
 import {
   ConfirmDialog,
   EmptyState,
@@ -44,7 +53,11 @@ export function OrdersPage() {
   const queryClient = useQueryClient();
   const { data: orders = [], isLoading } = useQuery(ordersQuery());
   const { data: items = [] } = useQuery(orderItemsQuery());
-  const [search, setSearch] = useState("");
+  const { q } = useSearch({ strict: false }) as { q?: string };
+  const [search, setSearch] = useState(q ?? "");
+  useEffect(() => {
+    if (q) setSearch(q);
+  }, [q]);
   const [status, setStatus] = useState("all");
   const [day, setDay] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -143,9 +156,30 @@ export function OrdersPage() {
                 <Printer /> Imprimer la liste
               </DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={() => printStickers(filtered, filteredItems, `Étiquettes — ${label}`)}
+                onSelect={() =>
+                  printTickets(
+                    filtered,
+                    filteredItems,
+                    `Tickets — ${label}`,
+                    "a4",
+                    day || undefined,
+                  )
+                }
               >
-                <Tags /> Imprimer les étiquettes
+                <Scissors /> Tickets à découper (A4)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  printTickets(
+                    filtered,
+                    filteredItems,
+                    `Tickets — ${label}`,
+                    "thermal",
+                    day || undefined,
+                  )
+                }
+              >
+                <Receipt /> Tickets imprimante 80 mm
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -287,7 +321,7 @@ export function OrdersPage() {
                           </Button>
                         </td>
                         <td className="p-3">
-                          <p className="font-semibold">#{order.reference}</p>
+                          <p className="font-semibold">{order.reference}</p>
                           <p className="text-xs text-muted-foreground">
                             {formatCreatedAt(order.created_at)}
                             {order.order_type === "precommande" && " · Précommande"}
@@ -362,7 +396,7 @@ export function OrdersPage() {
                         {order.first_name} {order.last_name}
                       </span>
                       <span className="block text-xs text-muted-foreground">
-                        #{order.reference} · {formatCreatedAt(order.created_at)}
+                        {order.reference} · {formatCreatedAt(order.created_at)}
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
@@ -410,7 +444,7 @@ export function OrdersPage() {
 
       <ConfirmDialog
         open={pendingCancel !== null}
-        title={`Annuler la commande #${pendingCancel?.reference ?? ""} ?`}
+        title={`Annuler la commande ${pendingCancel?.reference ?? ""} ?`}
         description="Elle sera retirée de la production et du chiffre d'affaires. Pensez à prévenir le client."
         confirmLabel="Annuler la commande"
         onCancel={() => setPendingCancel(null)}
@@ -492,6 +526,22 @@ function OrderDetails({ order, items }: { order: Order; items: OrderItem[] }) {
           ))}
         </ul>
       </Detail>
+      <div className="flex flex-wrap gap-2 sm:col-span-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => printTickets([order], items, `Ticket ${order.reference}`, "thermal")}
+        >
+          <Receipt /> Ticket 80 mm
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => printTickets([order], items, `Ticket ${order.reference}`, "a4")}
+        >
+          <Scissors /> Ticket A4
+        </Button>
+      </div>
     </div>
   );
 }

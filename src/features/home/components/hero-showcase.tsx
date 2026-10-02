@@ -1,6 +1,14 @@
 import { ArrowDown, MessageCircle } from "lucide-react";
 
 import heroImage from "@/assets/plats-traiteur-header.webp";
+import heroImageMobile from "@/assets/plats-traiteur-header-mobile.webp";
+
+// Chiffres clés fournis par Ndelli's Traiteur.
+const STATS = [
+  { value: "10k+", label: "Plats livrés" },
+  { value: "5 000+", label: "Clients satisfaits" },
+  { value: "2019", label: "Au service de Dakar depuis" },
+];
 
 /** Bannière d'accueil : titre centré sur la photo des plats (variante de `hero.tsx`). */
 export function HeroShowcase() {
@@ -8,6 +16,8 @@ export function HeroShowcase() {
     <section className="relative overflow-hidden border-b border-border/70 bg-sidebar pb-24 pt-36 text-sidebar-foreground sm:pb-32 sm:pt-44">
       <img
         src={heroImage}
+        srcSet={`${heroImageMobile} 960w, ${heroImage} 1920w`}
+        sizes="100vw"
         alt=""
         aria-hidden="true"
         width={1920}
@@ -44,6 +54,18 @@ export function HeroShowcase() {
             <MessageCircle className="size-4" aria-hidden="true" /> Devis traiteur
           </a>
         </div>
+
+        <dl className="mx-auto mt-12 grid max-w-2xl grid-cols-3 divide-x divide-sidebar-foreground/15">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="px-2 sm:px-6">
+              <dt className="sr-only">{stat.label}</dt>
+              <dd className="font-display text-3xl font-bold text-sidebar-foreground sm:text-5xl">
+                {stat.value}
+              </dd>
+              <dd className="mt-1 text-xs text-sidebar-foreground/70 sm:text-sm">{stat.label}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

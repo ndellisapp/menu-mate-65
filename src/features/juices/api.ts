@@ -5,7 +5,7 @@ export type JuiceSize = "petit" | "grand";
 export type JuiceState = "disponible" | "epuise" | "desactive";
 
 export const JUICE_SIZES: { size: JuiceSize; label: string; volume: string }[] = [
-  { size: "petit", label: "Petit", volume: "25 cl" },
+  { size: "petit", label: "Petit", volume: "250 ml" },
   { size: "grand", label: "Grand", volume: "1,5 L" },
 ];
 

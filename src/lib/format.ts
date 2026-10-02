@@ -63,11 +63,13 @@ export function todayISO() {
   }).format(new Date());
 }
 
+/**
+ * Toute la cuisine est préparée en même temps : une commande passe directement
+ * de « confirmée » à « en livraison ». (Plus de statuts « en préparation » ni « prête ».)
+ */
 export const ORDER_STATUSES = [
   "nouvelle",
   "confirmee",
-  "en_preparation",
-  "prete",
   "en_livraison",
   "livree",
   "annulee",
@@ -78,8 +80,6 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   nouvelle: "Nouvelle",
   confirmee: "Confirmée",
-  en_preparation: "En préparation",
-  prete: "Prête",
   en_livraison: "En livraison",
   livree: "Livrée",
   annulee: "Annulée",

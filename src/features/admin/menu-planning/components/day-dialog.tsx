@@ -17,6 +17,7 @@ import type { Day, Week } from "@/features/admin/menu-planning/api";
 import type { Product } from "@/features/admin/products/api";
 import { formatDay } from "@/lib/format";
 import { AddProductForm } from "@/features/admin/menu-planning/components/add-product-form";
+import { MenuItemDialog } from "@/features/admin/menu-planning/components/menu-item-dialog";
 import { ConfirmDialog, ProductThumb } from "@/features/admin/components/admin-ui";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ export function DayDialog({
   pending: boolean;
 }) {
   const [toRemove, setToRemove] = useState<MenuRow | null>(null);
+  const [editing, setEditing] = useState<MenuRow | null>(null);
 
   return (
     <Dialog open={day !== null} onOpenChange={(open) => !open && onClose()}>
@@ -119,20 +121,27 @@ export function DayDialog({
                           !row.is_active && "bg-muted/40",
                         )}
                       >
-                        <span className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
+                        <button
+                          type="button"
+                          onClick={() => setEditing(row)}
+                          title="Voir et modifier le détail du plat"
+                          className="col-span-2 flex min-w-0 items-center gap-3 rounded-md text-left transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-accent sm:col-span-1"
+                        >
                           <ProductThumb
                             name={row.name}
                             photoUrl={row.photo_url}
                             className="size-10"
                           />
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium">{row.name}</span>
+                            <span className="block truncate text-sm font-medium underline-offset-2 hover:underline">
+                              {row.name}
+                            </span>
                             <span className="block text-xs text-muted-foreground">
                               {row.stock_reserved} commandée{row.stock_reserved > 1 ? "s" : ""} ·{" "}
                               {row.stock_left} restante{row.stock_left > 1 ? "s" : ""}
                             </span>
                           </span>
-                        </span>
+                        </button>
                         <label className="flex items-center gap-2 text-xs text-muted-foreground sm:block">
                           <span className="sm:sr-only">Prix</span>
                           <SavedNumberInput
@@ -178,8 +187,8 @@ export function DayDialog({
               )}
               {rows.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Les prix et portions sont enregistrés dès que vous quittez le champ ou appuyez sur
-                  Entrée.
+                  Cliquez sur un plat pour voir et modifier son détail. Les prix et portions sont
+                  enregistrés dès que vous quittez le champ ou appuyez sur Entrée.
                 </p>
               )}
             </section>
@@ -193,6 +202,8 @@ export function DayDialog({
             Fermer
           </Button>
         </DialogFooter>
+
+        <MenuItemDialog row={editing} onClose={() => setEditing(null)} />
 
         <ConfirmDialog
           open={toRemove !== null}

@@ -3,6 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OrdersPage } from "@/features/admin/orders/orders-page";
 
 export const Route = createFileRoute("/admin/orders")({
+  // `?q=CMD-…` pré-remplit la recherche (lien depuis une notification ou le tableau de bord).
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search["q"] === "string" ? { q: search["q"] } : {},
   head: () => ({
     meta: [
       { title: "Commandes — Ndelli's Traiteur" },

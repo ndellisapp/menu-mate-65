@@ -18,7 +18,7 @@ export const productsQuery = () =>
     queryFn: () => run<Product[]>(db.from("products").select("*").order("name")),
   });
 
-/** Format d'un jus du catalogue (petit 25 cl / grand 1,5 L), avec son prix et son stock. */
+/** Format d'un jus du catalogue (petit 250 ml / grand 1,5 L), avec son prix et son stock. */
 export type ProductVariant = {
   id: string;
   product_id: string;

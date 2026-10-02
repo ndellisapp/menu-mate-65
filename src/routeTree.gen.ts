@@ -18,8 +18,11 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminWeeksRouteImport } from './routes/admin/weeks'
 import { Route as ApiPublicPaydunyaIpnRouteImport } from './routes/api/public/paydunya-ipn'
+import { Route as ApiPublicPushKeyRouteImport } from './routes/api/public/push-key'
+import { Route as ApiPublicPushWebhookRouteImport } from './routes/api/public/push-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -66,6 +69,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminWeeksRoute = AdminWeeksRouteImport.update({
   id: '/weeks',
   path: '/weeks',
@@ -74,6 +82,16 @@ const AdminWeeksRoute = AdminWeeksRouteImport.update({
 const ApiPublicPaydunyaIpnRoute = ApiPublicPaydunyaIpnRouteImport.update({
   id: '/api/public/paydunya-ipn',
   path: '/api/public/paydunya-ipn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushKeyRoute = ApiPublicPushKeyRouteImport.update({
+  id: '/api/public/push-key',
+  path: '/api/public/push-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushWebhookRoute = ApiPublicPushWebhookRouteImport.update({
+  id: '/api/public/push-webhook',
+  path: '/api/public/push-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -86,9 +104,12 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
+  '/api/public/push-key': typeof ApiPublicPushKeyRoute
+  '/api/public/push-webhook': typeof ApiPublicPushWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -98,9 +119,12 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
+  '/api/public/push-key': typeof ApiPublicPushKeyRoute
+  '/api/public/push-webhook': typeof ApiPublicPushWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -112,9 +136,12 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
+  '/api/public/push-key': typeof ApiPublicPushKeyRoute
+  '/api/public/push-webhook': typeof ApiPublicPushWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,9 +154,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/reports'
     | '/admin/weeks'
     | '/admin/'
     | '/api/public/paydunya-ipn'
+    | '/api/public/push-key'
+    | '/api/public/push-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,9 +169,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/reports'
     | '/admin/weeks'
     | '/admin'
     | '/api/public/paydunya-ipn'
+    | '/api/public/push-key'
+    | '/api/public/push-webhook'
   id:
     | '__root__'
     | '/'
@@ -152,9 +185,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/reports'
     | '/admin/weeks'
     | '/admin/'
     | '/api/public/paydunya-ipn'
+    | '/api/public/push-key'
+    | '/api/public/push-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,6 +201,8 @@ export interface RootRouteChildren {
   ConfirmationRoute: typeof ConfirmationRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicPaydunyaIpnRoute: typeof ApiPublicPaydunyaIpnRoute
+  ApiPublicPushKeyRoute: typeof ApiPublicPushKeyRoute
+  ApiPublicPushWebhookRoute: typeof ApiPublicPushWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/weeks': {
       id: '/admin/weeks'
       path: '/weeks'
@@ -246,12 +291,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaydunyaIpnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push-key': {
+      id: '/api/public/push-key'
+      path: '/api/public/push-key'
+      fullPath: '/api/public/push-key'
+      preLoaderRoute: typeof ApiPublicPushKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push-webhook': {
+      id: '/api/public/push-webhook'
+      path: '/api/public/push-webhook'
+      fullPath: '/api/public/push-webhook'
+      preLoaderRoute: typeof ApiPublicPushWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   AdminWeeksRoute: typeof AdminWeeksRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -259,6 +319,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminReportsRoute: AdminReportsRoute,
   AdminWeeksRoute: AdminWeeksRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -273,6 +334,8 @@ const rootRouteChildren: RootRouteChildren = {
   ConfirmationRoute: ConfirmationRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicPaydunyaIpnRoute: ApiPublicPaydunyaIpnRoute,
+  ApiPublicPushKeyRoute: ApiPublicPushKeyRoute,
+  ApiPublicPushWebhookRoute: ApiPublicPushWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

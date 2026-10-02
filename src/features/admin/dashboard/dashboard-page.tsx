@@ -2,10 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
   Gauge,
   Printer,
+  Receipt,
+  Scissors,
   ShoppingBag,
   TrendingUp,
   Wallet,
@@ -22,9 +26,17 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { adminMenuQuery, type MenuRow } from "@/features/menu/api";
+import { juiceCatalogQuery, juiceVolume } from "@/features/juices/api";
 import { orderItemsQuery, ordersQuery } from "@/features/admin/orders/api";
 import { formatDay, formatPrice, todayISO, weekdayLabel } from "@/lib/format";
-import { printProduction } from "@/features/admin/orders/print";
+import { printProduction, printTickets } from "@/features/admin/orders/print";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { addDays } from "@/features/admin/menu-planning/calendar";
 import { EmptyState, PageHeader, ProductThumb } from "@/features/admin/components/admin-ui";
 import { cn } from "@/lib/utils";
@@ -43,6 +55,8 @@ const MUTED = "#5f6b7a";
  */
 const LOW_PORTIONS = 3;
 const HIGH_DEMAND_RATIO = 0.8;
+// Un format de jus est signalé quand il reste 5 bouteilles ou moins.
+const LOW_JUICE_BOTTLES = 5;
 
 type DishLevel = "epuise" | "renforcer" | "ok";
 
@@ -54,6 +68,10 @@ function dishLevel(row: MenuRow): DishLevel {
 }
 
 export function Dashboard() {
+  const { data: juiceCatalog = [] } = useQuery(juiceCatalogQuery());
+  const lowJuices = juiceCatalog
+    .filter((j) => j.state !== "desactive" && j.stock <= LOW_JUICE_BOTTLES)
+    .sort((a, b) => a.stock - b.stock);
   const { data: orders = [] } = useQuery(ordersQuery());
   const { data: items = [] } = useQuery(orderItemsQuery());
   const { data: menu = [] } = useQuery(adminMenuQuery());
@@ -97,17 +115,20 @@ export function Dashboard() {
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
   }, [dayItems]);
 
-  // Liste à imprimer : quantités précommandées par produit.
-  const preorderList = useMemo(() => {
-    const map = new Map<string, { name: string; category: string; quantity: number }>();
-    for (const i of dayItems) {
-      const key = `${i.product_name}|${i.category}`;
-      const row = map.get(key) ?? { name: i.product_name, category: i.category, quantity: 0 };
-      row.quantity += i.quantity;
-      map.set(key, row);
-    }
-    return [...map.values()].sort((a, b) => b.quantity - a.quantity);
-  }, [dayItems]);
+  // Liste à imprimer : plats du menu (prévu / précommandé / restant) puis jus précommandés.
+  const printRows = useMemo(
+    () => [
+      ...dishes.map((d) => ({
+        name: d.name,
+        category: "plat",
+        quantity: d.stock_reserved,
+        planned: d.stock_initial,
+        left: d.stock_left,
+      })),
+      ...juices.map(([name, quantity]) => ({ name, category: "jus", quantity })),
+    ],
+    [dishes, juices],
+  );
 
   const revenue = dayItems.reduce((sum, i) => sum + i.amount, 0);
   // Seules les commandes entièrement payées comptent comme encaissées (un acompte reste « à encaisser »).
@@ -118,6 +139,16 @@ export function Dashboard() {
   const cashed = dayItems.filter((i) => paidIds.has(i.order_id)).reduce((s, i) => s + i.amount, 0);
 
   const toConfirm = orders.filter((o) => o.status === "nouvelle");
+  // Jours de livraison de chaque commande (une précommande peut couvrir plusieurs jours).
+  const deliveryDays = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const item of items) {
+      const list = map.get(item.order_id) ?? [];
+      if (!list.includes(item.day_date)) list.push(item.day_date);
+      map.set(item.order_id, list.sort());
+    }
+    return map;
+  }, [items]);
   const toConfirmOfDay = ordersOfDay.filter((o) => o.status === "nouvelle").length;
   const upcomingAlerts = menu.filter(
     (m) => m.day_date > day && m.is_active && dishLevel(m) !== "ok",
@@ -182,13 +213,43 @@ export function Dashboard() {
                 <ChevronRight />
               </Button>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => printProduction(`Précommandes — ${formatDay(day)}`, preorderList)}
-              disabled={preorderList.length === 0}
-            >
-              <Printer /> Imprimer les précommandes
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Printer /> Imprimer <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuItem
+                  disabled={printRows.length === 0}
+                  onSelect={() =>
+                    printProduction(`Précommandes — ${formatDay(day)}`, printRows, {
+                      day,
+                      orders: ordersOfDay.length,
+                    })
+                  }
+                >
+                  <ClipboardList /> Liste des précommandes
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={ordersOfDay.length === 0}
+                  onSelect={() =>
+                    printTickets(ordersOfDay, items, `Tickets — ${formatDay(day)}`, "a4", day)
+                  }
+                >
+                  <Scissors /> Tickets à découper (A4)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={ordersOfDay.length === 0}
+                  onSelect={() =>
+                    printTickets(ordersOfDay, items, `Tickets — ${formatDay(day)}`, "thermal", day)
+                  }
+                >
+                  <Receipt /> Tickets imprimante 80 mm
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         }
       />
@@ -285,23 +346,42 @@ export function Dashboard() {
             </p>
           ) : (
             <ul className="divide-y divide-border">
-              {toConfirm.slice(0, 6).map((order) => (
-                <li key={order.id} className="flex items-center gap-3 px-5 py-3">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
-                    {order.first_name.slice(0, 1).toUpperCase()}
-                    {order.last_name.slice(0, 1).toUpperCase()}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">
-                      {order.first_name} {order.last_name}
-                    </span>
-                    <span className="block text-xs text-muted-foreground">#{order.reference}</span>
-                  </span>
-                  <span className="shrink-0 text-sm font-medium tabular-nums">
-                    {formatPrice(order.total)}
-                  </span>
-                </li>
-              ))}
+              {toConfirm.slice(0, 6).map((order) => {
+                const days = deliveryDays.get(order.id) ?? [];
+                return (
+                  <li key={order.id}>
+                    <Link
+                      to="/admin/orders"
+                      search={{ q: order.reference }}
+                      className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                    >
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                        {order.first_name.slice(0, 1).toUpperCase()}
+                        {order.last_name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate text-sm font-medium">
+                            {order.first_name} {order.last_name}
+                          </span>
+                          {order.order_type === "precommande" && (
+                            <span className="shrink-0 rounded bg-[var(--brand-tint)] px-1.5 text-[11px] font-medium text-primary">
+                              Précommande
+                            </span>
+                          )}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {order.reference}
+                          {days.length > 0 && <> · livraison {days.map(shortDay).join(", ")}</>}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-sm font-medium tabular-nums">
+                        {formatPrice(order.total)}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Panel>
@@ -405,9 +485,55 @@ export function Dashboard() {
             </ul>
           )}
         </Panel>
+
+        <Panel
+          title="Stock des jus"
+          subtitle={`Formats à ${LOW_JUICE_BOTTLES} bouteilles ou moins`}
+          footer={<PanelLink to="/admin/products">Réapprovisionner dans Produits</PanelLink>}
+        >
+          {lowJuices.length === 0 ? (
+            <p className="px-5 py-8 text-center text-sm text-muted-foreground">
+              Tous les jus sont bien en stock.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {lowJuices.slice(0, 8).map((j) => (
+                <li key={j.variant_id} className="flex items-center gap-3 px-5 py-3">
+                  <ProductThumb name={j.name} photoUrl={j.photo_url} className="size-9" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{j.name}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {juiceVolume(j.size)}
+                    </span>
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-xs font-semibold",
+                      j.stock <= 0
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-amber-100 text-amber-800",
+                    )}
+                  >
+                    {j.stock <= 0 ? "Épuisé" : `${j.stock} restante${j.stock > 1 ? "s" : ""}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
       </div>
     </div>
   );
+}
+
+/** « ven. 2 oct. » */
+function shortDay(iso: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${iso}T00:00:00Z`));
 }
 
 function DishRow({ dish }: { dish: MenuRow }) {
@@ -549,7 +675,7 @@ function PanelLink({
   to,
   children,
 }: {
-  to: "/admin/orders" | "/admin/weeks";
+  to: "/admin/orders" | "/admin/weeks" | "/admin/products";
   children: ReactNode;
 }) {
   return (
