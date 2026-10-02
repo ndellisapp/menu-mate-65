@@ -90,18 +90,28 @@ function CheckoutPage() {
   const pay = useServerFn(startPayment);
   const mutation = useMutation({
     mutationFn: async (payload: Parameters<typeof placeOrder>[0]) => {
-      const result = await placeOrder(payload);
+      const fingerprint = JSON.stringify(payload);
+      const pendingRaw = window.sessionStorage.getItem("traiteur.pending_payment");
+      let pending: { fingerprint: string; orderId: string } | null = null;
+      try { pending = pendingRaw ? JSON.parse(pendingRaw) : null; } catch { /* ignore expired data */ }
+      const result = pending?.fingerprint === fingerprint
+        ? null
+        : await placeOrder(payload);
+      const orderId = result?.order_id ?? pending?.orderId;
+      if (!orderId) throw new Error("Commande introuvable. Réessayez.");
+      if (result) window.sessionStorage.setItem("traiteur.pending_payment", JSON.stringify({ fingerprint, orderId }));
+      const { url } = await pay({ data: { orderId } });
+      if (!url.startsWith("https://app.paydunya.com/")) throw new Error("Lien de paiement invalide. Réessayez.");
       const payload2 = {
-        reference: result.reference,
-        total: result.total,
-        order_type: result.order_type,
-        deposit_required: result.deposit_required,
+        reference: result?.reference,
+        total: result?.total ?? total,
+        order_type: result?.order_type ?? (isPreorder ? "precommande" : "immediate"),
+        deposit_required: result?.deposit_required ?? (isPreorder ? DEPOSIT_AMOUNT : 0),
         customer: form,
         items: items.map((i) => ({ ...i })),
       };
       window.sessionStorage.setItem("traiteur.last_order", JSON.stringify(payload2));
       clear();
-      const { url } = await pay({ data: { orderId: result.order_id } });
       return url;
     },
     onSuccess: (url) => {

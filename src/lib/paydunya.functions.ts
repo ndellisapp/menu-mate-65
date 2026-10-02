@@ -16,7 +16,16 @@ export const startPayment = createServerFn({ method: "POST" })
     if (order.payment_status === "paye" || order.payment_status === "acompte_paye")
       throw new Error("Cette commande est déjà payée.");
     const amount = order.order_type === "precommande" ? order.deposit_required : order.total;
-    const origin = new URL(getRequest().url).origin;
+    const request = getRequest();
+    const requestOrigin = request.headers.get("origin");
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const requestHost = forwardedHost ?? request.headers.get("host") ?? new URL(request.url).host;
+    const origin = requestOrigin && new URL(requestOrigin).host === requestHost
+      ? requestOrigin
+      : `${request.headers.get("x-forwarded-proto") ?? "https"}://${requestHost}`;
+    if (!origin.startsWith("https://") && !origin.startsWith("http://localhost:")) {
+      throw new Error("Adresse de paiement invalide. Rechargez la page et réessayez.");
+    }
     const invoice = await createInvoice({
       amount,
       orderId: order.id,
@@ -26,7 +35,8 @@ export const startPayment = createServerFn({ method: "POST" })
           ? `Acompte précommande ${order.reference}`
           : `Commande ${order.reference}`,
     });
-    await supabaseAdmin.from("orders").update({ paydunya_token: invoice.token }).eq("id", order.id);
+    const { error: saveError } = await supabaseAdmin.from("orders").update({ paydunya_token: invoice.token }).eq("id", order.id);
+    if (saveError) throw new Error("Le paiement n'a pas pu être associé à votre commande. Réessayez.");
     return { url: invoice.url };
   });
 

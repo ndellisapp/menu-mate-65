@@ -15,6 +15,9 @@ export async function createInvoice(input: {
   orderId: string;
   origin: string;
 }) {
+  if (!process.env["PAYDUNYA_MASTER_KEY"] || !process.env["PAYDUNYA_PRIVATE_KEY"] || !process.env["PAYDUNYA_TOKEN"]) {
+    throw new Error("Le paiement est momentanément indisponible. Contactez-nous pour finaliser votre commande.");
+  }
   const res = await fetch(`${BASE}/checkout-invoice/create`, {
     method: "POST",
     headers: headers(),
@@ -29,10 +32,10 @@ export async function createInvoice(input: {
       custom_data: { order_id: input.orderId },
     }),
   });
-  const json = (await res.json()) as { response_code?: string; response_text?: string; token?: string };
-  if (json.response_code !== "00" || !json.token || !json.response_text) {
-    console.error("PayDunya create error", json);
-    throw new Error("Le paiement PayDunya n'a pas pu être lancé. Réessayez.");
+  const json = (await res.json().catch(() => null)) as { response_code?: string; response_text?: string; token?: string } | null;
+  if (!res.ok || json?.response_code !== "00" || !json.token || !json.response_text?.startsWith("https://app.paydunya.com/")) {
+    console.error("PayDunya invoice rejected", { status: res.status, code: json?.response_code, reason: json?.response_text?.slice(0, 250) });
+    throw new Error("Le paiement n'a pas pu démarrer. Votre panier est conservé ; réessayez ou contactez-nous.");
   }
   return { url: json.response_text, token: json.token };
 }

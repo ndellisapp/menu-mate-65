@@ -47,6 +47,7 @@ import platRow2_9 from "@/assets/plat-row2-9.jpg.asset.json";
 import platRow2_10 from "@/assets/plat-row2-10.jpg.asset.json";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { publicMenuQuery, type MenuRow } from "@/lib/api";
@@ -185,35 +186,28 @@ function MenuPage() {
                   </Button>
                 </div>
               </div>
-              <div
-                ref={scrollRef}
-                className="flex snap-x snap-mandatory gap-3 overflow-x-auto py-2 scrollbar-hide scroll-smooth"
-              >
+              <Tabs value={currentDay ?? undefined} onValueChange={setActiveDay}>
+              <TabsList ref={scrollRef} aria-label="Jours du menu" className="flex h-auto w-full justify-start gap-0 overflow-x-auto rounded-none border-b border-border bg-transparent p-0 scrollbar-hide scroll-smooth">
                 {days.map((day) => {
-                  const isCurrent = day === currentDay;
                   const isToday = day === todayISO();
                   return (
-                    <Button
+                    <TabsTrigger
                       key={day}
                       ref={(el) => {
                         if (el) dayRefs.current.set(day, el);
                       }}
-                      type="button"
-                      variant={isCurrent ? "default" : "outline"}
-                      onClick={() => setActiveDay(day)}
-                      className={cn(
-                        "h-auto min-w-36 shrink-0 snap-start rounded-full px-6 py-3 text-sm font-bold",
-                        isCurrent && "shadow-warm",
-                      )}
+                      value={day}
+                      className="h-12 min-w-36 shrink-0 snap-start rounded-none border-b-2 border-transparent px-5 text-sm font-bold text-muted-foreground shadow-none data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
                     >
                       <span className="flex items-center gap-2">
                         {formatDayShort(day)}
                         {isToday && <span className="inline-flex size-2 rounded-full bg-accent" />}
                       </span>
-                    </Button>
+                    </TabsTrigger>
                   );
                 })}
-              </div>
+              </TabsList>
+              </Tabs>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -446,7 +440,7 @@ function GalleryMarquee() {
               src={p.src}
               alt={p.alt}
               loading="lazy"
-              className="h-52 w-44 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-60 sm:w-52"
+              className="h-65 w-55 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-75 sm:w-65"
             />
           ))}
         </MarqueeRow>
@@ -457,7 +451,7 @@ function GalleryMarquee() {
               src={p.src}
               alt={p.alt}
               loading="lazy"
-              className="h-52 w-44 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-60 sm:w-52"
+              className="h-65 w-55 shrink-0 rounded-2xl object-cover shadow-warm transition-transform duration-300 hover:scale-[1.03] sm:h-75 sm:w-65"
             />
           ))}
         </MarqueeRow>
@@ -473,7 +467,7 @@ function GalleryMarquee() {
 
 function PlaceholderCard({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
-    <div className="flex h-52 w-44 shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-accent/40 bg-card text-center shadow-card sm:h-60 sm:w-52">
+    <div className="flex h-65 w-55 shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-accent/40 bg-card text-center shadow-card sm:h-75 sm:w-65">
       <div className="flex size-12 items-center justify-center rounded-full bg-accent/10">
         <Icon className="size-6 text-accent" aria-hidden="true" />
       </div>
