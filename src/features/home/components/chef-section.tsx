@@ -2,8 +2,14 @@ import chefImage from "@/assets/chef-ndellis.jpg";
 
 export function ChefSection() {
   return (
-    <section className="text-sidebar-foreground">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-20 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    <section className="relative text-sidebar-foreground">
+      {/* voile marron supplémentaire : le haut de l'image (table blanche) est plus clair que le bas,
+          on l'assombrit pour que la partie cheffe ait le même rendu que Service traiteur */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-b from-sidebar/40 via-sidebar/30 to-transparent"
+      />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-20 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="relative mx-auto order-first w-full max-w-sm">
           <div className="absolute -inset-3 rounded-3xl border border-accent/30" />
           <img
