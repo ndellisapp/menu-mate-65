@@ -110,7 +110,6 @@ function AdminLayout() {
                 key={item.to}
                 to={item.to}
                 activeOptions={{ exact: item.exact }}
-                activeProps={{ className: "bg-accent text-accent-foreground hover:bg-accent" }}
                 className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-accent"
                 activeProps={{ className: "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground" }}
               >

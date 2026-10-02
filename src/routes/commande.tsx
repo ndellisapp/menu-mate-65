@@ -67,6 +67,12 @@ function CheckoutPage() {
     instructions: "",
   });
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("paiement") === "annule") {
+      toast.info("Paiement annulé. Votre panier est conservé pour réessayer.");
+    }
+  }, []);
+
   const today = todayISO();
   const isPreorder = useMemo(
     () => items.some((item) => item.day_date > today),

@@ -55,7 +55,10 @@ function ConfirmationPage() {
     if (token) {
       setPayStatus("checking");
       check({ data: { token } })
-        .then((r) => setPayStatus(r.status))
+        .then((r) => {
+          setPayStatus(r.status);
+          if (r.status === "completed") window.sessionStorage.removeItem("traiteur.pending_payment");
+        })
         .catch(() => setPayStatus("unknown"));
     }
   }, [check]);
