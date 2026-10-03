@@ -1,5 +1,5 @@
 {
-  "name": "@ndellis/site",
+  "name": "@platform/site",
   "private": true,
   "type": "module",
   "scripts": {
