@@ -19,6 +19,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminSimulationRouteImport } from './routes/admin/simulation'
 import { Route as AdminWeeksRouteImport } from './routes/admin/weeks'
 import { Route as ApiPublicPaydunyaIpnRouteImport } from './routes/api/public/paydunya-ipn'
 import { Route as ApiPublicPushKeyRouteImport } from './routes/api/public/push-key'
@@ -74,6 +75,11 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSimulationRoute = AdminSimulationRouteImport.update({
+  id: '/simulation',
+  path: '/simulation',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminWeeksRoute = AdminWeeksRouteImport.update({
   id: '/weeks',
   path: '/weeks',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/simulation': typeof AdminSimulationRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/simulation': typeof AdminSimulationRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/simulation': typeof AdminSimulationRoute
   '/admin/weeks': typeof AdminWeeksRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/paydunya-ipn': typeof ApiPublicPaydunyaIpnRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reports'
+    | '/admin/simulation'
     | '/admin/weeks'
     | '/admin/'
     | '/api/public/paydunya-ipn'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reports'
+    | '/admin/simulation'
     | '/admin/weeks'
     | '/admin'
     | '/api/public/paydunya-ipn'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/products'
     | '/admin/reports'
+    | '/admin/simulation'
     | '/admin/weeks'
     | '/admin/'
     | '/api/public/paydunya-ipn'
@@ -277,6 +289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/simulation': {
+      id: '/admin/simulation'
+      path: '/simulation'
+      fullPath: '/admin/simulation'
+      preLoaderRoute: typeof AdminSimulationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/weeks': {
       id: '/admin/weeks'
       path: '/weeks'
@@ -312,6 +331,7 @@ interface AdminRouteChildren {
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminSimulationRoute: typeof AdminSimulationRoute
   AdminWeeksRoute: typeof AdminWeeksRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -320,6 +340,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminReportsRoute: AdminReportsRoute,
+  AdminSimulationRoute: AdminSimulationRoute,
   AdminWeeksRoute: AdminWeeksRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

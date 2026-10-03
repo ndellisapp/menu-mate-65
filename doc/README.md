@@ -5,6 +5,7 @@ le menu du lundi au vendredi. Les clients commandent sans créer de compte et pa
 
 - **Ajouter une fonctionnalité :** suivez [`ajouter-une-fonctionnalite.md`](ajouter-une-fonctionnalite.md).
 - **Comprendre une fonctionnalité existante :** ouvrez sa fiche ci-dessous.
+- **Fonctionnalités prévues :** voir [`nouvelles-fonctionnalites.md`](nouvelles-fonctionnalites.md).
 
 ## Fonctionnalités
 
@@ -27,6 +28,7 @@ le menu du lundi au vendredi. Les clients commandent sans créer de compte et pa
 | [Semaines et menus](fonctionnalites/admin-semaines-et-menus.md) | `src/features/admin/menu-planning/` | `/admin/weeks` |
 | [Catalogue produits](fonctionnalites/admin-produits.md) | `src/features/admin/products/` | `/admin/products` |
 | [Commandes](fonctionnalites/admin-commandes.md) | `src/features/admin/orders/` | `/admin/orders` |
+| [Simulation de production et des dépenses](fonctionnalites/admin-simulation.md) | `src/features/admin/simulation/` | `/admin/simulation` |
 
 ## Organisation du code
 

@@ -13,8 +13,8 @@ export function FoodBackdrop({ children }: { children: ReactNode }) {
         loading="lazy"
         className="pointer-events-none absolute inset-0 size-full select-none object-cover"
       />
-      {/* voile marron commun aux deux parties : les aliments restent visibles en transparence */}
-      <div aria-hidden="true" className="absolute inset-0 bg-sidebar/55" />
+      {/* voile marron identique pour les deux parties (cheffe et traiteur) : les aliments restent visibles en transparence */}
+      <div aria-hidden="true" className="absolute inset-0 bg-sidebar/65" />
       <div className="relative">{children}</div>
     </div>
   );
