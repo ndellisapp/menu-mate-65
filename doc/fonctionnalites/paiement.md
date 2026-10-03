@@ -1,6 +1,6 @@
 # Paiement (PayDunya)
 
-**Code :** `src/features/payment/`
+**Code :** `apps/site/src/features/payment/`
 
 Encaisse le total, ou l'acompte d'une précommande, par PayDunya (Wave, Orange Money, carte…).
 
@@ -21,4 +21,4 @@ Sans ces clés, le client voit le message « Le paiement est momentanément indi
 | --- | --- |
 | `paydunya.server.ts` | Appels à l'API PayDunya (créer, confirmer, synchroniser) |
 | `paydunya.functions.ts` | Fonctions serveur `startPayment` et `checkPayment` appelées par le site |
-| `src/routes/api/public/paydunya-ipn.ts` | Notification serveur à serveur de PayDunya |
+| `apps/site/src/routes/api/public/paydunya-ipn.ts` | Notification serveur à serveur de PayDunya |

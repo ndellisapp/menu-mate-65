@@ -34,3 +34,6 @@ dist-ssr
 # Liaison locale Supabase CLI (projet lié, versions)
 supabase/.temp/
 .env.lovable.bak
+
+# Builds Vercel locaux
+.vercel

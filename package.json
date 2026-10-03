@@ -1,13 +1,14 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "ndellis-platform",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "dev:site": "npm run dev --workspace apps/site",
+    "dev:admin": "npm run dev --workspace apps/admin",
+    "build:site": "npm run build --workspace apps/site",
+    "build:admin": "npm run build --workspace apps/admin",
+    "build": "npm run build:site && npm run build:admin",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -84,5 +85,8 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.2.0"
-  }
+  },
+  "workspaces": [
+    "apps/*"
+  ]
 }

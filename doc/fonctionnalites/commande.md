@@ -1,6 +1,6 @@
 # Commande et confirmation
 
-**Code :** `src/features/checkout/`
+**Code :** `apps/site/src/features/checkout/`
 
 Le client vérifie son panier, donne ses coordonnées de livraison et paie.
 

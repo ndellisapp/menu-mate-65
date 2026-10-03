@@ -1,6 +1,6 @@
 # Simulation de production et des dépenses
 
-**Code :** `src/features/admin/simulation/`
+**Code :** `apps/admin/src/features/admin/simulation/`
 
 Le gérant connaît **trois chiffres** pour un jour ou une semaine : la **somme à recevoir**, les
 **dépenses** et le **bénéfice**. Il obtient aussi la **liste de courses**. Tout est calculé à

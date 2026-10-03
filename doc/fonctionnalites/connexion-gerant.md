@@ -1,6 +1,6 @@
 # Connexion gérant
 
-**Code :** `src/features/auth/`
+**Code :** `apps/admin/src/features/auth/`
 
 Permet au gérant d'accéder à l'espace de gestion.
 

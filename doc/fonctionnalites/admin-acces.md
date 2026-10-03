@@ -1,6 +1,6 @@
 # Coque de l'espace gérant
 
-**Code :** `src/features/admin/layout/`
+**Code :** `apps/admin/src/features/admin/layout/`
 
 ## Fonctionnement
 - Vérifie qu'un utilisateur est connecté. Sinon, redirige vers `/auth`.

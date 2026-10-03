@@ -1,6 +1,6 @@
 # Commandes
 
-**Code :** `src/features/admin/orders/`
+**Code :** `apps/admin/src/features/admin/orders/`
 
 Suivi des commandes, de la réception à la livraison.
 

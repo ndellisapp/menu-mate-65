@@ -1,6 +1,6 @@
 # Accueil (vitrine)
 
-**Code :** `src/features/home/`
+**Code :** `apps/site/src/features/home/`
 
 Page d'accueil publique du traiteur. Elle présente la maison et donne envie de commander.
 
@@ -13,7 +13,7 @@ Page d'accueil publique du traiteur. Elle présente la maison et donne envie de 
 4. **Un voyage culinaire** : texte de présentation et vidéo de la cheffe en cuisine.
 5. **Notre cheffe** : portrait et parcours de Ndellis Signé, suivi d'un séparateur avec une toque entre deux filets dorés (`components/chef-hat-divider.tsx`).
 6. **Service traiteur sur devis** : mariages, baptêmes, anniversaires, entreprises, avec un bouton de devis WhatsApp (78 186 72 72).
-7. **Ils nous font confiance** : logos des partenaires qui défilent (Free, Oxium Sénégal, Yas, Banque Mondiale, Unicn Africa). Pour en ajouter un : déposer le logo dans `src/assets/partenaires/` et l'ajouter à `TRUSTED_COMPANIES`.
+7. **Ils nous font confiance** : logos des partenaires qui défilent (Free, Oxium Sénégal, Yas, Banque Mondiale, Unicn Africa). Pour en ajouter un : déposer le logo dans `apps/site/src/assets/partenaires/` et l'ajouter à `TRUSTED_COMPANIES`.
 8. **Témoignages** : avis clients en carrousel, avec flèches et barre de progression.
 
 ## Fichiers

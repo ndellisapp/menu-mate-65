@@ -1,6 +1,6 @@
 # Catalogue produits
 
-**Code :** `src/features/admin/products/`
+**Code :** `apps/admin/src/features/admin/products/`
 
 Liste des plats et jus réutilisables d'une semaine à l'autre.
 

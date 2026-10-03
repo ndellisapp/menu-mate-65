@@ -1,6 +1,6 @@
 # Semaines et menus
 
-**Code :** `src/features/admin/menu-planning/`
+**Code :** `apps/admin/src/features/admin/menu-planning/`
 
 Le gérant compose et publie le menu de chaque semaine.
 

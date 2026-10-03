@@ -1,6 +1,6 @@
 # Tableau de bord
 
-**Code :** `src/features/admin/dashboard/`
+**Code :** `apps/admin/src/features/admin/dashboard/`
 
 Vue de production pour préparer la journée.
 

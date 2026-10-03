@@ -1,6 +1,6 @@
 # Menu de la semaine
 
-**Code :** `src/features/menu/`
+**Code :** `apps/site/src/features/menu/`
 
 Affiche les plats et jus disponibles, jour par jour, et permet de les ajouter au panier.
 

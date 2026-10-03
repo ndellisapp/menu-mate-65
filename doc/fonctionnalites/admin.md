@@ -1,6 +1,6 @@
 # Espace gérant
 
-**Code :** `src/features/admin/`
+**Code :** `apps/admin/src/features/admin/`
 
 Back-office du traiteur, réservé à l'administrateur.
 

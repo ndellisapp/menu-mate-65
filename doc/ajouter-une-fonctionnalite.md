@@ -5,11 +5,11 @@ Remplacez « promotions » par le nom de votre fonctionnalité.
 
 ## Checklist
 
-- [ ] 1. Créer le dossier `src/features/<nom>/`
+- [ ] 1. Créer le dossier de la fonctionnalité dans la bonne application (`apps/site` ou `apps/admin`)
 - [ ] 2. Créer la table dans la base (migration + sécurité) si la fonctionnalité stocke des données
 - [ ] 3. Écrire les requêtes dans `api.ts`
 - [ ] 4. Écrire la page et ses composants
-- [ ] 5. Déclarer la route dans `src/routes/`
+- [ ] 5. Déclarer la route dans `apps/<app>/src/routes/`
 - [ ] 6. Ajouter le lien dans la navigation
 - [ ] 7. Vérifier (TypeScript, lint, build, test dans le navigateur)
 - [ ] 8. Écrire la fiche dans `doc/fonctionnalites/` et l'ajouter au sommaire `doc/README.md`
@@ -19,16 +19,18 @@ Remplacez « promotions » par le nom de votre fonctionnalité.
 ## 1. Créer le dossier
 
 ```
-src/features/admin/promotions/      ← fonctionnalité gérant
+apps/admin/apps/admin/src/features/admin/promotions/      ← fonctionnalité gérant
 ├── api.ts                          types + requêtes Supabase
 ├── promotions-page.tsx             la page
 └── components/                     sous-composants (si la page devient longue)
 ```
 
-- Fonctionnalité **côté client** : `src/features/<nom>/`.
-- Fonctionnalité **côté gérant** : `src/features/admin/<nom>/`.
+- Fonctionnalité **côté client** : `apps/site/src/features/<nom>/`.
+- Fonctionnalité **côté gérant** : `apps/admin/src/features/admin/<nom>/`.
 - Noms de fichiers en minuscules avec des tirets (`promotion-card.tsx`).
-- Un composant utile à plusieurs fonctionnalités va dans `src/components/`, pas dans `features/`.
+- Un composant utile à plusieurs fonctionnalités d'une même app va dans `apps/<app>/src/components/`.
+- Du code utile **aux deux applications** (requêtes, types, formats) va dans `packages/core/src/`,
+  importé avec `@core/…` ; un composant d'interface commun va dans `packages/ui/src/`, importé avec `@ui/…`.
 
 ## 2. Base de données (si besoin)
 
@@ -66,11 +68,11 @@ Règles à respecter :
 
 ## 3. Requêtes : `api.ts`
 
-Suivez le modèle des autres fonctionnalités (par exemple `src/features/admin/products/api.ts`) :
+Suivez le modèle des autres fonctionnalités (par exemple `apps/admin/src/features/admin/products/api.ts`) :
 
 ```ts
 import { queryOptions } from "@tanstack/react-query";
-import { db, run } from "@/lib/db";
+import { db, run } from "@core/lib/db";
 
 export type Promotion = {
   id: string;
@@ -92,7 +94,7 @@ export const promotionsQuery = () =>
 ## 4. La page
 
 ```tsx
-// src/features/admin/promotions/promotions-page.tsx
+// apps/admin/apps/admin/src/features/admin/promotions/promotions-page.tsx
 import { useQuery } from "@tanstack/react-query";
 
 import { promotionsQuery } from "./api";
@@ -108,17 +110,17 @@ export function PromotionsPage() {
 }
 ```
 
-- Réutilisez les composants de `src/components/ui/` (Button, Input, Dialog, Switch…) et les couleurs du thème (`text-primary`, `bg-accent`, `surface-card`…) pour garder le même style.
+- Réutilisez les composants de `packages/ui/src/components/ui/` (`@ui/components/ui/…`) (Button, Input, Dialog, Switch…) et les couleurs du thème (`text-primary`, `bg-accent`, `surface-card`…) pour garder le même style.
 - Demandez une **confirmation** avant toute suppression ou action irréversible.
 - N'insérez jamais une donnée saisie par un client dans du HTML construit à la main (`document.write`, `innerHTML`) sans l'échapper.
 
 ## 5. La route
 
 Le fichier de route ne contient **que** l'URL et les balises `<head>`. Le nom du fichier donne l'URL :
-`src/routes/admin/promotions.tsx` → `/admin/promotions`.
+`apps/admin/src/routes/admin/promotions.tsx` → `/admin/promotions`.
 
 ```tsx
-// src/routes/admin/promotions.tsx
+// apps/admin/src/routes/admin/promotions.tsx
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PromotionsPage } from "@/features/admin/promotions/promotions-page";
@@ -129,28 +131,28 @@ export const Route = createFileRoute("/admin/promotions")({
 });
 ```
 
-- Ne modifiez **jamais** `src/routeTree.gen.ts` : il est régénéré automatiquement quand `npm run dev` tourne.
+- Ne modifiez **jamais** `routeTree.gen.ts` : il est régénéré automatiquement par `npm run dev:site` / `dev:admin`.
 - Les pages sous `/admin/` sont automatiquement protégées par le contrôle d'accès gérant (`admin-layout.tsx`).
 - Une page client utilise `SiteHeader` et `SiteFooter` (`@/components/site-header`).
 
 ## 6. Navigation
 
-- **Gérant :** ajoutez une ligne dans `NAV` (`src/features/admin/layout/admin-layout.tsx`) :
+- **Gérant :** ajoutez une ligne dans `NAV` (`apps/admin/src/features/admin/layout/admin-layout.tsx`) :
   ```ts
   { to: "/admin/promotions", label: "Promotions", icon: Percent, exact: false },
   ```
   (icône à importer depuis `lucide-react`).
-- **Client :** ajoutez le lien dans `src/components/site-header.tsx`.
+- **Client :** ajoutez le lien dans `apps/site/src/components/site-header.tsx`.
 
 ## 7. Vérifier
 
 ```bash
-npx tsc --noEmit -p .     # aucune erreur TypeScript
+npx tsc --noEmit -p apps/admin   # aucune erreur TypeScript (ou apps/site)
 npx eslint src/features    # pas de nouveau problème
-npx vite build            # le build de production passe
+npm run build:admin               # le build de production passe (ou build:site)
 ```
 
-Ensuite, ouvrez la page sur http://localhost:8080 et testez le parcours complet, sur ordinateur **et sur téléphone**.
+Ensuite, ouvrez la page sur http://localhost:8081 (admin) ou http://localhost:8080 (site) et testez le parcours complet, sur ordinateur **et sur téléphone**.
 
 ## 8. Documenter
 

@@ -1,6 +1,6 @@
 # Panier
 
-**Code :** `src/features/cart/`
+**Code :** `apps/site/src/features/cart/`
 
 Garde en mémoire les produits choisis par le client jusqu'à la commande.
 
